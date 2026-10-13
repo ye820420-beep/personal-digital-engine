@@ -191,6 +191,26 @@ Copy it, paste it into another AI or another device, and keep going.
 | **Relationships** | Contact list (red if untouched for 30+ days), this week's interactions, relationships to repair |
 | **Money** | Income/expense detail, category share, 6-month trend, subscription audit |
 
+### ⭐ It is not a picture — it is a page you can log into
+
+The generated `仪表盘.html` ships with an interaction layer. **You can log without opening an AI:**
+
+| Feature | How |
+|---|---|
+| **Log one** | Tap the bottom button -> pick a category -> type a line and a number -> save, **and the density map changes colour on the spot** |
+| **Export for AI** | One click produces a standard ledger table plus completed todos — copy it or download `.md` |
+| **Import a ledger** | Drag `流水账-YYYY-MM.md` onto the page and the charts update immediately |
+| **Checkable todos** | Checked state is kept locally, survives refresh, and travels with the export |
+| **Density range** | Switch between 7 / 14 / 30 days |
+
+**Division of labour:** the AI organises (turns your casual sentences into structured data);
+the page lets you log on the fly; the export goes back to the AI and merges into your profile.
+**Everything stays on your own device — nothing is uploaded to any server.**
+
+> The page opens as a local `file://`, and browsers do not let it rewrite files in the same
+> folder (a security limit). So "log on the page → export → merge in the AI" is required,
+> not a design flaw.
+
 ---
 
 ## ⭐ What separates it from every other dashboard: every recommendation carries evidence

@@ -1,8 +1,8 @@
 <!--
-  个人数字化引擎 · 仪表盘模板
-  用法：只改 <script> 里 "数据区" 的内容（META 到 MONEY 之间的常量），
-        渲染部分一个字符都不要改。改完保存为 仪表盘.html，双击即可打开。
-  数据区之外的东西（雷达图、图表函数、Tab 切换）都是通用的，不用管。
+  个人数字化引擎 · 仪表盘模板（可交互版）
+  用法：只改「数据区」那一段（META 到 MONEY 之间的常量），
+        渲染部分和交互层一个字符都不要改。改完保存为 仪表盘.html，双击即可打开。
+  数据区之外的东西（雷达图、图表函数、页签切换、记录/导入/导出）都是通用的，不用管。
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -163,6 +163,68 @@ tr.due td{border-top-color:rgba(255,178,36,.4)}
 .legend s{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px;text-decoration:none;vertical-align:middle}
 
 footer{text-align:center;font-size:11px;color:#5C6678;margin-top:18px;line-height:1.7}
+
+/* ============ 交互层（页面自带） ============ */
+body{padding-bottom:78px}
+.fabbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:8px;justify-content:center;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(11,14,20,0),rgba(11,14,20,.94) 42%)}
+.fab{flex:0 1 auto;min-width:88px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;
+  padding:11px 15px;border-radius:24px;border:1px solid var(--line);background:var(--card);color:var(--txt);
+  -webkit-tap-highlight-color:transparent;user-select:none}
+.fab.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff}
+.fab:active{transform:translateY(1px)}
+.badge{display:inline-block;min-width:17px;height:17px;line-height:17px;padding:0 5px;border-radius:9px;
+  background:var(--yel);color:#1A1300;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px}
+
+.mask{position:fixed;inset:0;background:rgba(4,6,10,.62);z-index:70;opacity:0;pointer-events:none;transition:.18s}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:80;transform:translateY(102%);transition:.22s cubic-bezier(.2,.8,.2,1);
+  background:var(--card);border-top:1px solid var(--line);border-radius:20px 20px 0 0;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:86vh;overflow:auto}
+.sheet.on{transform:none}
+.sheet h3{font-size:15px;margin-bottom:4px}
+.sheet .hint{font-size:11.5px;color:var(--dim);margin-bottom:12px;line-height:1.65}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.chip{font-size:12.5px;padding:7px 12px;border-radius:18px;background:var(--card2);
+  border:1px solid var(--line);color:var(--dim);cursor:pointer;user-select:none}
+.chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent;font-weight:600}
+.field{display:flex;gap:8px;margin-bottom:9px}
+.field input{flex:1;background:#0E131C;border:1px solid var(--line);border-radius:11px;padding:11px 12px;
+  color:var(--txt);font-size:13.5px;font-family:inherit;outline:none;min-width:0}
+.field input:focus{border-color:var(--acc)}
+.field input.num{flex:0 0 96px}
+.field input.datein{flex:1}
+.row2{display:flex;gap:9px;align-items:center;margin-bottom:13px}
+.row2 label{font-size:12px;color:var(--dim);flex:none}
+.btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:650;cursor:pointer;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-family:inherit}
+.btn.ghost{background:var(--card2);color:var(--dim);border:1px solid var(--line)}
+.btns{display:flex;gap:9px}
+.btns+.btns{margin-top:8px}
+
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(12px);z-index:90;
+  background:#1A2130;border:1px solid var(--line);color:var(--txt);font-size:13px;padding:10px 16px;
+  border-radius:12px;opacity:0;pointer-events:none;transition:.2s;max-width:88vw;text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+.outbox{width:100%;height:200px;background:#0E131C;border:1px solid var(--line);border-radius:11px;
+  color:#C9D2E3;font-size:12px;font-family:ui-monospace,Consolas,Menlo,monospace;padding:11px;
+  resize:vertical;outline:none;box-sizing:border-box;line-height:1.6}
+.dropzone{border:1.5px dashed #33405A;border-radius:14px;padding:22px 14px;text-align:center;
+  font-size:12.5px;color:var(--dim);margin-bottom:12px;cursor:pointer;line-height:1.6}
+.dropzone.over{border-color:var(--acc);background:rgba(91,140,255,.07);color:var(--txt)}
+
+.inbox .li{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:8px 0;border-top:1px solid var(--line)}
+.inbox .li:first-child{border-top:none}
+.inbox .cd{color:var(--dim);flex:none;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;padding-top:1px}
+.inbox .ct{flex:1;line-height:1.5}
+.inbox .del{color:#5C6678;cursor:pointer;flex:none;padding:0 2px}
+.seg{display:inline-flex;gap:2px;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:2px}
+.seg b{font-size:11px;font-weight:500;padding:3px 9px;border-radius:7px;color:var(--dim);cursor:pointer;user-select:none}
+.seg b.on{background:var(--acc);color:#fff;font-weight:600}
+#todo .ck,#sc-fix .ck{cursor:pointer}
+@media(max-width:560px){.fab{min-width:0;flex:1;padding:11px 8px;font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -244,10 +306,65 @@ footer{text-align:center;font-size:11px;color:#5C6678;margin-top:18px;line-heigh
   </div>
 
   <footer>
-    数据全部存在你自己的设备里 · 可随时带走、换任何 AI 接着用<br>
-    本页由《个人数字化引擎》生成本地文件，不上传任何服务器
+    本页可以直接记一笔、导入流水账、导出给 AI —— 不装任何东西，不上传任何服务器<br>
+    补记的内容先存在这台设备的浏览器里，导出后交给 AI，数据才回到你自己的文件
   </footer>
 </div>
+
+<!-- ==================== 交互层：底部操作栏 ==================== -->
+<div class="fabbar">
+  <div class="fab pri" id="f-log">＋ 记一笔<span class="badge" id="f-badge" style="display:none">0</span></div>
+  <div class="fab" id="f-out">导出给 AI</div>
+  <div class="fab" id="f-in">导入流水账</div>
+</div>
+
+<div class="mask" id="mask"></div>
+
+<!-- 记一笔 -->
+<div class="sheet" id="s-log">
+  <h3>记一笔</h3>
+  <div class="hint">选个类型，写一句就够。保存后先存在这台设备上，页面上的记录密度图会立刻变。<br>
+  想让 AI 接手，点「导出给 AI」复制走。</div>
+  <div class="chips" id="chips"></div>
+  <div class="field"><input id="i-txt" placeholder="晚饭吃了牛肉面" maxlength="120" autocomplete="off"></div>
+  <div class="field">
+    <input class="num" id="i-num" placeholder="数值" inputmode="decimal" autocomplete="off">
+    <input class="num" id="i-unit" placeholder="单位" autocomplete="off">
+  </div>
+  <div class="row2">
+    <label>日期</label>
+    <input class="datein" id="i-date" type="date">
+  </div>
+  <div class="btns">
+    <button class="btn ghost" id="b-cancel">取消</button>
+    <button class="btn" id="b-save">保存</button>
+  </div>
+</div>
+
+<!-- 导出 -->
+<div class="sheet" id="s-out">
+  <h3>导出给 AI</h3>
+  <div class="hint">下面是标准流水账格式。复制走，粘给 AI 说一句「并入流水账」，它就接手了。</div>
+  <textarea class="outbox" id="out" readonly></textarea>
+  <div class="btns" style="margin-top:10px">
+    <button class="btn ghost" id="b-dl">下载 .md</button>
+    <button class="btn" id="b-copy">复制</button>
+  </div>
+  <div class="btns"><button class="btn ghost" id="b-savefile" style="display:none">存回原文件</button></div>
+  <div class="btns"><button class="btn ghost" id="b-clear">清空本地暂存</button></div>
+</div>
+
+<!-- 导入 -->
+<div class="sheet" id="s-in">
+  <h3>导入流水账</h3>
+  <div class="hint">把 AI 生成的 流水账-YYYY-MM.md 拖进来，或点下面的框选文件。<br>
+  读到的日期会直接补进记录密度图。<b>本页不会改动你的任何文件</b>。</div>
+  <div class="dropzone" id="dz">点这里选文件<br>或把 .md 拖到这个框里</div>
+  <input type="file" id="fi" accept=".md,.txt,.markdown,text/markdown,text/plain" style="display:none">
+  <div id="in-result"></div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 /* ==================== 数据区（改成你自己的） ==================== */
@@ -459,12 +576,16 @@ el("total").textContent=META.total;
 el("verdict").innerHTML=VERDICT;
 
 /* ---- 总览 ---- */
-el("strip").innerHTML=[
-  ["连续记录",META.streak+" 天","#5B8CFF"],
-  ["本月记录",META.records+" 条","#7A5BFF"],
-  ["本月结余",(CASH.balance>=0?"+":"")+fmt(CASH.balance),CASH.balance>=0?C.grn:C.red],
-  ["本月支出",fmt(CASH.expense),CASH.expense>CASH.guessed?C.yel:C.grn]
-].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+function renderStrip(extra){
+  extra=extra||0;
+  el("strip").innerHTML=[
+    ["连续记录",META.streak+" 天","#5B8CFF"],
+    ["本月记录",(META.records+extra)+" 条"+(extra?' <span style="font-size:11px;color:#FFB224">+'+extra+'</span>':''),"#7A5BFF"],
+    ["本月结余",(CASH.balance>=0?"+":"")+fmt(CASH.balance),CASH.balance>=0?C.grn:C.red],
+    ["本月支出",fmt(CASH.expense),CASH.expense>CASH.guessed?C.yel:C.grn]
+  ].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+}
+renderStrip(0);
 
 (function(){const r=26,cir=2*Math.PI*r,p=META.total/100,col=META.total>=75?C.grn:META.total>=55?C.yel:C.red;
 el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="#222B38" stroke-width="6"/><circle cx="31" cy="31" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(cir*p).toFixed(1)} ${cir.toFixed(1)}" transform="rotate(-90 31 31)"/><text x="31" y="35" text-anchor="middle" font-size="15" font-weight="700" fill="${col}">${META.total}</text></svg>`;})();
@@ -480,9 +601,35 @@ el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx
     <div class="cats">${CASH.cats.slice(0,5).map(c=>`<div class="cat"><span class="cn">${c.n}</span><span class="cb"><i style="width:${(c.v/CASH.cats[0].v*100).toFixed(1)}%"></i></span><span class="cv mono">${fmt(c.v)}</span></div>`).join("")}</div>
     <div class="tip">${CASH.tip}</div>
     <div class="tip" style="border:none;padding-top:2px"><span style="color:#8A94A6">近 30 天哪天记了、哪天断了</span>
-      <div class="h30">${HEAT30.map((h,i)=>`<i class="${h>=3?"l3":h===2?"l2":h===1?"l1":""}${i===HEAT30.length-1?" td":""}"></i>`).join("")}</div>
-      <div class="heatlab"><span>30 天前</span><span>今天</span></div></div>`;
+      <div id="h30wrap"></div></div>`;
 })();
+
+/* 记录密度图：可切换范围，可被交互层刷新（补记/导入后重算） */
+function heatVal(i){
+  var v=HEAT30[i]||0;
+  if(window.PDE_HEATADD)v=Math.min(3,v+(window.PDE_HEATADD[i]||0));
+  return v;
+}
+function renderHeat30(){
+  var w=el("h30wrap"); if(!w)return;
+  var n=window.PDE_RANGE||30, s="", i0=Math.max(0,HEAT30.length-n);
+  for(var i=i0;i<HEAT30.length;i++){
+    var v=heatVal(i);
+    s+='<i class="'+(v>=3?"l3":v===2?"l2":v===1?"l1":"")+(i===HEAT30.length-1?" td":"")+'"></i>';
+  }
+  w.innerHTML='<div class="seg" style="margin:8px 0 2px"><b data-r="7">7 天</b><b data-r="14">14 天</b><b data-r="30">30 天</b></div>'+
+    '<div class="h30">'+s+'</div><div class="heatlab"><span>'+n+' 天前</span><span>今天</span></div>';
+  w.querySelectorAll(".seg b").forEach(function(b){
+    if(+b.dataset.r===n)b.classList.add("on");
+    b.onclick=function(){
+      window.PDE_RANGE=+b.dataset.r;
+      try{localStorage.setItem("pde-range",b.dataset.r)}catch(e){}
+      renderHeat30();
+    };
+  });
+}
+try{var _r=localStorage.getItem("pde-range"); if(_r)window.PDE_RANGE=+_r;}catch(e){}
+renderHeat30();
 
 (function(){
   const R=78,CX=115,CY=112,N=6;
@@ -517,7 +664,31 @@ el("focus").innerHTML=(f.source?`<div class="src">${f.source}</div>`:"")+
 el("issues").innerHTML=tbl(ISSUES.map(i=>({c:[`<span class="pri" style="color:${i.pri==="高"?C.red:i.pri==="中"?C.yel:C.grn};background:${(i.pri==="高"?C.red:i.pri==="中"?C.yel:C.grn)}1F">${i.pri}</span>`,i.dim,i.issue,`<span style="color:var(--dim)">${i.why}</span>`,i.act,`<span style="color:var(--dim)">${i.status}</span>`]})),
   ["优先级","维度","问题","为什么","第一步","状态"],[44,52,0,150,150,62]);
 
-el("todo").innerHTML=TODO.map(t=>`<div class="ti ${t.due?"due":""}"><span class="ck"></span><span class="tt">${t.t}</span><span class="tm">${t.m}</span></div>`).join("");
+/* 待办可勾选，勾选状态存本地；导出时会带上已完成项 */
+function todoState(k){try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}}
+function toggleTodo(k,i){
+  var d=todoState(k),x=d.indexOf(i);
+  if(x>=0)d.splice(x,1); else d.push(i);
+  try{localStorage.setItem(k,JSON.stringify(d))}catch(e){}
+  renderTodos();
+}
+function renderTodos(){
+  var d1=todoState("pde-todo"), d2=todoState("pde-fix");
+  el("todo").innerHTML=TODO.map(function(t,i){
+    var on=d1.indexOf(i)>=0;
+    return `<div class="ti ${t.due?"due":""}"><span class="ck${on?" on":""}" data-k="pde-todo" data-i="${i}"></span>
+      <span class="tt"${on?' style="text-decoration:line-through;color:#5C6678"':''}>${t.t}</span>
+      <span class="tm">${on?"已完成":t.m}</span></div>`;}).join("");
+  el("sc-fix").innerHTML=SOCIAL.fix.map(function(t,i){
+    var on=d2.indexOf(i)>=0;
+    return `<div class="ti due"><span class="ck${on?" on":""}" data-k="pde-fix" data-i="${i}"></span>
+      <span class="tt"${on?' style="text-decoration:line-through;color:#5C6678"':''}>${t}</span>
+      ${on?'<span class="tm">已完成</span>':''}</div>`;}).join("");
+  document.querySelectorAll("#todo .ck,#sc-fix .ck").forEach(function(c){
+    c.addEventListener("click",function(){toggleTodo(c.dataset.k,+c.dataset.i)});
+  });
+}
+renderTodos();
 
 /* ---- 身体 ---- */
 el("bs-strip").innerHTML=[
@@ -607,6 +778,280 @@ document.querySelectorAll(".panel table").forEach(t=>{
   t.parentNode.insertBefore(w,t);
   w.appendChild(t);
 });
+</script>
+
+<!-- ==================== 交互层脚本（页面自带，AI 不用改这一段） ==================== -->
+<script>
+(function(){
+  var K_IN="pde-inbox", K_IM="pde-imported";
+  var $=function(id){return document.getElementById(id)};
+  function ls(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
+  function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];})}
+
+  var INBOX=ls(K_IN,[]), IMP=ls(K_IM,[]);
+
+  /* ---- toast ---- */
+  function toast(m){
+    var t=$("toast"); t.textContent=m; t.classList.add("on");
+    clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("on")},2400);
+  }
+
+  /* ---- 日期工具：以 META.date 为「今天」，跟数据区保持同一基准 ---- */
+  function pad(n){return n<10?"0"+n:""+n}
+  function todayStr(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+  function toDate(s){
+    var m=String(s||"").match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+    var m2=String(s||"").match(/(\d{1,2})-(\d{1,2})/);
+    if(m2){
+      var ym=String(META.date).match(/(\d{4})/);
+      return new Date(ym?+ym[1]:new Date().getFullYear(),+m2[1]-1,+m2[2]);
+    }
+    return null;
+  }
+  var BASE=toDate(META.date)||new Date();
+  function dayIdx(s){
+    var d=toDate(s); if(!d)return -1;
+    var i=29-Math.round((BASE-d)/86400000);
+    return i<0?0:(i>29?29:i);
+  }
+  function shortD(s){
+    var m=String(s||"").match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m?(m[2]+"-"+m[3]):(s||"");
+  }
+
+  /* ---- 记录密度：由「网页补记 + 导入条目」实时算出来，不落增量，避免漂移 ---- */
+  function computeHeat(){
+    var add=new Array(30).fill(0);
+    INBOX.concat(IMP).forEach(function(e){
+      var i=dayIdx(e.d);
+      if(i>=0&&i<30)add[i]=Math.min(3,add[i]+1);
+    });
+    window.PDE_HEATADD=add;
+    renderHeat30();
+    renderStrip(INBOX.length);
+  }
+
+  /* ---- 补记列表 ---- */
+  var box=document.createElement("div");
+  box.className="block"; box.id="inbox-block"; box.style.display="none";
+  box.innerHTML='<h2>网页端补记 <span id="inbox-hint"></span></h2><div class="inbox" id="inbox-list"></div>';
+  var mainPanel=$("p-main");
+  mainPanel.insertBefore(box, $("todo").parentNode);
+
+  function renderInbox(){
+    var b=$("inbox-block");
+    if(!INBOX.length){b.style.display="none";return}
+    b.style.display="";
+    $("inbox-hint").textContent="本地暂存 "+INBOX.length+" 条";
+    $("inbox-list").innerHTML=INBOX.map(function(e,i){
+      return '<div class="li"><span class="cd">'+esc(shortD(e.d))+'</span>'+
+        '<span class="ct"><b style="color:#8FB4FF">'+esc(e.c)+'</b> '+
+        esc(e.t||"")+(e.v?' <span class="mono" style="color:#FFB224">'+esc(e.v)+" "+esc(e.u||"")+'</span>':'')+
+        '</span><span class="del" data-i="'+i+'">✕</span></div>';
+    }).reverse().join("");
+    $("inbox-list").querySelectorAll(".del").forEach(function(x){
+      x.onclick=function(){
+        INBOX.splice(+x.dataset.i,1); save(K_IN,INBOX);
+        computeHeat(); renderInbox(); renderBadge();
+      };
+    });
+  }
+  function renderBadge(){
+    var b=$("f-badge");
+    if(INBOX.length){b.style.display="";b.textContent=INBOX.length}
+    else b.style.display="none";
+  }
+
+  /* ---- 分类 ---- */
+  var CATS=[
+    {n:"饮食",u:"kcal",p:"晚饭吃了牛肉面，大概多少大卡"},
+    {n:"运动",u:"步",  p:"走了 3200 步"},
+    {n:"睡眠",u:"小时",p:"睡了 7 小时，凌晨 1 点睡的"},
+    {n:"情绪",u:"分",  p:"今天 6 分，因为汇报没写完"},
+    {n:"支出",u:"元",  p:"打车 38"},
+    {n:"收入",u:"元",  p:"10 月工资 8000"},
+    {n:"学习",u:"分钟",p:"背单词 25 分钟"},
+    {n:"工作",u:"分钟",p:"写汇报大纲 40 分钟"},
+    {n:"人际",u:"次",  p:"给妈打电话，聊了 20 分钟"},
+    {n:"琐事",u:"",    p:"换季洗窗帘"}
+  ];
+  var cur=0;
+  $("chips").innerHTML=CATS.map(function(c,i){
+    return '<div class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+c.n+'</div>';
+  }).join("");
+  $("i-txt").placeholder=CATS[0].p;
+  $("i-unit").placeholder=CATS[0].u;
+  $("chips").addEventListener("click",function(e){
+    var c=e.target.closest(".chip"); if(!c)return;
+    $("chips").querySelectorAll(".chip").forEach(function(x){x.classList.remove("on")});
+    c.classList.add("on"); cur=+c.dataset.i;
+    $("i-txt").placeholder=CATS[cur].p;
+    $("i-unit").placeholder=CATS[cur].u||"单位";
+  });
+
+  /* ---- 抽屉开关 ---- */
+  function closeAll(){
+    $("mask").classList.remove("on");
+    ["s-log","s-out","s-in"].forEach(function(i){$(i).classList.remove("on")});
+  }
+  function openSheet(id){closeAll();$("mask").classList.add("on");$(id).classList.add("on")}
+  $("mask").onclick=closeAll;
+  $("b-cancel").onclick=closeAll;
+  $("f-log").onclick=function(){
+    $("i-date").value=todayStr(); openSheet("s-log");
+    setTimeout(function(){$("i-txt").focus()},240);
+  };
+  $("f-out").onclick=function(){$("out").value=buildExport();openSheet("s-out")};
+  $("f-in").onclick=function(){openSheet("s-in")};
+
+  function addEntry(){
+    var t=$("i-txt").value.trim(), n=$("i-num").value.trim(),
+        u=$("i-unit").value.trim()||CATS[cur].u, d=$("i-date").value||todayStr();
+    if(!t&&!n){toast("写点什么再保存");return}
+    INBOX.push({d:d,c:CATS[cur].n,t:t,v:n,u:u});
+    save(K_IN,INBOX); computeHeat(); renderInbox(); renderBadge();
+    $("i-txt").value=""; $("i-num").value="";
+    toast("记下了 · 本地暂存 "+INBOX.length+" 条");
+    closeAll();
+  }
+  $("b-save").onclick=addEntry;
+  ["i-txt","i-num","i-unit"].forEach(function(id){
+    $(id).addEventListener("keydown",function(e){if(e.key==="Enter")addEntry()});
+  });
+
+  /* ---- 导出 ---- */
+  function buildExport(){
+    var L=["## 网页端补记 · 导出于 "+todayStr(),"",
+           "| 日期 | 类型 | 内容 | 数值 | 备注 |","|---|---|---|---|---|"];
+    INBOX.forEach(function(e){
+      L.push("| "+shortD(e.d)+" | "+e.c+" | "+(e.t||"—")+" | "+
+             (e.v?(e.v+(e.u?" "+e.u:"")):"—")+" | 网页补记 |");
+    });
+    var done=[], d1=todoState("pde-todo"), d2=todoState("pde-fix");
+    d1.forEach(function(i){if(TODO[i])done.push(TODO[i].t)});
+    d2.forEach(function(i){if(SOCIAL.fix[i])done.push(SOCIAL.fix[i])});
+    if(done.length){
+      L.push("","## 已完成的待办（"+todayStr()+"）");
+      done.forEach(function(t){L.push("- [x] "+t)});
+    }
+    return L.join("\n");
+  }
+  function copyText(t){
+    function fb(){
+      var ta=document.createElement("textarea");
+      ta.value=t; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      var ok=false; try{ok=document.execCommand("copy")}catch(e){}
+      ta.remove(); return Promise.resolve(ok);
+    }
+    if(navigator.clipboard&&window.isSecureContext){
+      return navigator.clipboard.writeText(t).then(function(){return true},fb);
+    }
+    return fb();
+  }
+  function dl(name,text){
+    var b=new Blob([text],{type:"text/markdown;charset=utf-8"});
+    var u=URL.createObjectURL(b),a=document.createElement("a");
+    a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(u)},3000);
+  }
+  $("b-copy").onclick=function(){
+    if(!INBOX.length){toast("还没有补记的内容");return}
+    copyText($("out").value).then(function(ok){
+      toast(ok?"已复制 · 粘给 AI 说「并入流水账」":"复制没成功，请手动全选复制");
+    });
+  };
+  $("b-dl").onclick=function(){
+    if(!INBOX.length){toast("还没有补记的内容");return}
+    dl("流水账-补记-"+todayStr()+".md",$("out").value);
+  };
+  $("b-clear").onclick=function(){
+    if(!INBOX.length){toast("本地暂存是空的");return}
+    if(!confirm("清空本地暂存的 "+INBOX.length+" 条？\n（先导出再清）"))return;
+    INBOX=[]; save(K_IN,INBOX); computeHeat(); renderInbox(); renderBadge();
+    $("out").value=""; toast("已清空");
+  };
+  if(window.showSaveFilePicker){
+    $("b-savefile").style.display="";
+    $("b-savefile").onclick=function(){
+      window.showSaveFilePicker({
+        suggestedName:"流水账-"+todayStr().slice(0,7)+".md",
+        types:[{description:"Markdown",accept:{"text/markdown":[".md"]}}]
+      }).then(function(h){
+        return h.createWritable().then(function(w){
+          return w.write($("out").value).then(function(){return w.close()});
+        });
+      }).then(function(){toast("已写回你选的那个文件")})
+      .catch(function(e){
+        if(e&&e.name!=="AbortError")toast("这个浏览器不让直存，用「下载 .md」");
+      });
+    };
+  }
+
+  /* ---- 导入 ---- */
+  function parseLedger(text){
+    var out=[], cur="";
+    String(text).split(/\r?\n/).forEach(function(line){
+      var h=line.match(/^#{1,4}\s*(\d{4}-\d{2}-\d{2}|\d{1,2}-\d{1,2})/);
+      if(h){cur=h[1];return}
+      if(/^\s*\|/.test(line)){
+        var cells=line.split("|").map(function(s){return s.trim()});
+        cells=cells.slice(1,cells.length-1);
+        if(cells.length<2)return;
+        if(/^[-: ]+$/.test(cells.join("")))return;
+        if(cells[0]==="日期"||cells[0].indexOf("日期")>=0)return;
+        var d=cells[0], k=1;
+        if(!/\d/.test(d)){d=cur;k=0}
+        out.push({d:d,c:cells[k]||"",t:cells[k+1]||"",v:cells[k+2]||"",n:cells[k+3]||""});
+        return;
+      }
+      var m=line.match(/^[-*]\s+(?:\[[ xX]\]\s+)?(?:(\d{1,2}:\d{2})\s+)?(.+)$/);
+      if(m)out.push({d:cur,c:"",t:(m[1]?m[1]+" ":"")+m[2],v:"",n:""});
+    });
+    return out.filter(function(r){return r.t||r.v});
+  }
+  function ingest(text){
+    var got=parseLedger(text);
+    got.forEach(function(e){IMP.push(e)});
+    if(IMP.length>5000)IMP=IMP.slice(-5000);
+    save(K_IM,IMP); computeHeat();
+    return got.length;
+  }
+  function readFile(f){
+    var r=new FileReader();
+    r.onload=function(){
+      var n=ingest(String(r.result));
+      $("in-result").innerHTML='<div class="tip" style="border:none">读到 <b style="color:#2ED47A">'+
+        n+'</b> 条 · '+esc(f.name)+'<br>记录密度图已按这些日期更新。<br>'+
+        '想让它们进主数据，导出后交给 AI。</div>';
+      toast("导入 "+n+" 条");
+    };
+    r.readAsText(f,"utf-8");
+  }
+  var dz=$("dz"), fi=$("fi");
+  dz.onclick=function(){fi.click()};
+  fi.onchange=function(){if(fi.files[0])readFile(fi.files[0])};
+  ["dragenter","dragover"].forEach(function(ev){
+    dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add("over")});
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.remove("over")});
+  });
+  dz.addEventListener("drop",function(e){var f=e.dataTransfer.files[0];if(f)readFile(f)});
+  document.addEventListener("dragover",function(e){e.preventDefault()});
+  document.addEventListener("drop",function(e){
+    e.preventDefault();
+    var f=e.dataTransfer.files[0];
+    if(f)readFile(f);
+  });
+
+  /* ---- 初始化 ---- */
+  $("i-date").value=todayStr();
+  computeHeat(); renderInbox(); renderBadge();
+})();
 </script>
 </body>
 </html>
