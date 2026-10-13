@@ -104,6 +104,32 @@ h1{font-size:19px;font-weight:650;letter-spacing:.5px}
 .heat .on{background:linear-gradient(135deg,var(--acc),var(--acc2))}
 .heatlab{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);margin-top:5px}
 
+/* 30 天记录热力图 */
+.h30{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:10px}
+.h30 i{aspect-ratio:1;border-radius:4px;background:#1C2432}
+.h30 i.l1{background:rgba(91,140,255,.35)}
+.h30 i.l2{background:rgba(91,140,255,.6)}
+.h30 i.l3{background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.h30 i.td{outline:1.5px solid #FFB224;outline-offset:1px}
+
+/* 六维变化 */
+.delta{font-size:10.5px;font-weight:600;margin-left:5px}
+.up{color:var(--grn)} .down{color:var(--red)} .flat{color:#5C6678}
+.dnum{width:44px;text-align:right;font-size:12px;flex:none}
+
+/* 手机端 */
+@media(max-width:560px){
+  body{padding:16px 11px 34px}
+  h1{font-size:17px}
+  .hero{flex-direction:column;align-items:flex-start;gap:12px;padding:15px 16px}
+  .hero .big{font-size:38px}
+  .block{padding:14px 14px}
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tblwrap table{min-width:480px}
+  table{font-size:12px}
+  .h30{grid-template-columns:repeat(10,1fr)}
+}
+
 .focus{background:linear-gradient(90deg,rgba(255,92,92,.14),rgba(255,92,92,.03));
   border:1px solid rgba(255,92,92,.35);border-radius:16px;padding:15px 17px;margin-bottom:12px}
 .focus .tag{font-size:11px;color:var(--red);font-weight:700;letter-spacing:.8px;margin-bottom:6px}
@@ -234,19 +260,21 @@ const CASH = {
   tip:"跟月初自估的 6,000 相比，实际多出 <b>1,340</b> —— 全在零散支出里。"
 };
 const HEAT = [1,1,0,1,1,1,1];
+/* 近 30 天记录密度：0=没记 1/2/3=记了 1/2/3 条以上 */
+const HEAT30 = [0,1,2,1,0,1,3,2,1,1,0,2,1,1,3,2,0,1,1,2,1,1,0,3,2,1,1,2,1,1];
 
 const DIMS = [
-  {name:"身体", score:48, level:"red",  note:"凌晨 1 点睡 · 久坐 10 小时 · 本周 0 次运动",
+  {name:"身体", score:48, delta:-2, level:"red",  note:"凌晨 1 点睡 · 久坐 10 小时 · 本周 0 次运动",
    metrics:[["BMI","26.1 超重"],["睡眠","7.0 h"],["摄入/消耗","2630 / 2110"]]},
-  {name:"情绪", score:55, level:"yel",  note:"基线 5/10 · 周日晚最差 · 恢复方式无效",
+  {name:"情绪", score:55, delta:+3, level:"yel",  note:"基线 5/10 · 周日晚最差 · 恢复方式无效",
    metrics:[["自评","5 / 10"],["波动","周日晚"],["恢复","刷短视频"]]},
-  {name:"学习", score:35, level:"red",  note:"连续 3 个月没完整学完任何东西",
+  {name:"学习", score:35, delta:0, level:"red",  note:"连续 3 个月没完整学完任何东西",
    metrics:[["近3月完成","0 项"],["进行中","英语（未启动）"],["日均投入","0 分钟"]]},
-  {name:"工作", score:60, level:"yel",  note:"汇报拖了两周，持续占用心理带宽",
+  {name:"工作", score:60, delta:+5, level:"yel",  note:"汇报拖了两周，持续占用心理带宽",
    metrics:[["可支配","2 h/天"],["在办","3 件"],["逾期","1 件"]]},
-  {name:"关系", score:45, level:"red",  note:"每周稳定联系 2 人 · 支撑单薄",
+  {name:"关系", score:45, delta:-1, level:"red",  note:"每周稳定联系 2 人 · 支撑单薄",
    metrics:[["周联系","2 人"],["最依赖","室友"],["待修复","1 段"]]},
-  {name:"财务", score:52, level:"yel",  note:"记账后发现：实际比自估高 1,340",
+  {name:"财务", score:52, delta:+4, level:"yel",  note:"记账后发现：实际比自估高 1,340",
    metrics:[["月结余","+660"],["负债","无"],["记账","第 12 天"]]}
 ];
 
@@ -414,12 +442,16 @@ function tbl(rows, heads, widths){
 /* ---- Tab ---- */
 const TABS=[["p-main","总览"],["p-body","身体"],["p-mood","情绪"],["p-study","学习"],["p-work","工作"],["p-social","关系"],["p-money","财务"]];
 el("tabs").innerHTML=TABS.map((t,i)=>`<div class="tab${i===0?" on":""}" data-p="${t[0]}">${t[1]}</div>`).join("");
+function show(id){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.p===id));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("on",x.id===id));
+  try{localStorage.setItem("pde-tab",id)}catch(e){}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 el("tabs").addEventListener("click",e=>{
-  const b=e.target.closest(".tab"); if(!b)return;
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
-  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
-  b.classList.add("on"); el(b.dataset.p).classList.add("on");
+  const b=e.target.closest(".tab"); if(!b)return; show(b.dataset.p);
 });
+try{const s=localStorage.getItem("pde-tab"); if(s&&el(s))show(s);}catch(e){}
 
 el("mdate").textContent=META.date;
 el("mdays").textContent=META.days;
@@ -447,9 +479,9 @@ el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx
     </div>
     <div class="cats">${CASH.cats.slice(0,5).map(c=>`<div class="cat"><span class="cn">${c.n}</span><span class="cb"><i style="width:${(c.v/CASH.cats[0].v*100).toFixed(1)}%"></i></span><span class="cv mono">${fmt(c.v)}</span></div>`).join("")}</div>
     <div class="tip">${CASH.tip}</div>
-    <div class="tip" style="border:none;padding-top:2px"><span style="color:#8A94A6">近 7 天记录</span>
-      <div class="heat">${HEAT.map(h=>`<i class="${h?"on":""}"></i>`).join("")}</div>
-      <div class="heatlab"><span>7 天前</span><span>今天</span></div></div>`;
+    <div class="tip" style="border:none;padding-top:2px"><span style="color:#8A94A6">近 30 天哪天记了、哪天断了</span>
+      <div class="h30">${HEAT30.map((h,i)=>`<i class="${h>=3?"l3":h===2?"l2":h===1?"l1":""}${i===HEAT30.length-1?" td":""}"></i>`).join("")}</div>
+      <div class="heatlab"><span>30 天前</span><span>今天</span></div></div>`;
 })();
 
 (function(){
@@ -468,11 +500,13 @@ el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx
   s+=`</svg>`;el("radar").innerHTML=s;
 })();
 
+const dtag = v => v>0?`<span class="delta up">▲${v}</span>`:v<0?`<span class="delta down">▼${-v}</span>`:`<span class="delta flat">—</span>`;
+
 el("dimlist").innerHTML=DIMS.map(d=>{const c=lv(d.level);
-  return`<div class="dimrow"><span class="dname">${d.name}</span><span class="bar"><i style="width:${d.score}%;background:${c}"></i></span><span class="num mono">${d.score}</span></div>`;}).join("");
+  return`<div class="dimrow"><span class="dname">${d.name}</span><span class="bar"><i style="width:${d.score}%;background:${c}"></i></span><span class="dnum mono"><b>${d.score}</b>${dtag(d.delta||0)}</span></div>`;}).join("");
 
 el("cards").innerHTML=DIMS.map(d=>{const c=lv(d.level);
-  return`<div class="c"><div class="top"><span class="t">${d.name}</span><span class="pill" style="color:${c};background:${c}22">${d.score}</span></div>
+  return`<div class="c"><div class="top"><span class="t">${d.name}</span><span class="pill" style="color:${c};background:${c}22">${d.score}${dtag(d.delta||0)}</span></div>
   <div class="mets">${d.metrics.map(m=>`<span class="met">${m[0]}<b>${m[1]}</b></span>`).join("")}</div>
   <div class="note">${d.note}</div></div>`;}).join("");
 
@@ -565,6 +599,14 @@ el("mn-cats").innerHTML=hbars(CASH.cats.map((c,i)=>({n:c.n,v:c.v,c:["#5B8CFF","#
   `<div class="tip">餐饮外卖 1,860 元 —— <b>跟房租房贷几乎一样多</b>，但从来没被当成一笔大额支出看待。</div>`;
 el("mn-trend").innerHTML=vbars(MONEY.trend,{showVal:true,h:120,colors:(v,i)=>i===MONEY.trend.length-1?C.yel:"#3D4A60"})+
   `<div class="legend"><span><s style="background:${C.yel}"></s>本月</span><span style="margin-left:auto">${MONEY.note}</span></div>`;
+
+/* 手机端：给每张表套一层可横向滚动的容器 */
+document.querySelectorAll(".panel table").forEach(t=>{
+  const w=document.createElement("div");
+  w.className="tblwrap";
+  t.parentNode.insertBefore(w,t);
+  w.appendChild(t);
+});
 </script>
 </body>
 </html>
