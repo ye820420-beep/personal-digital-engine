@@ -15,13 +15,17 @@
 周报-*.md
 月度结算-*.md
 
-# 隐私目录（放本地副本、凭证、截图原始素材等）
-references/
+# 隐私目录：你自己的私有资料（体检报告/合同/医嘱/报销制度）
+# —— 只放这里，才不会被 git 提交上去
 private/
 .private/
 .local/
 *.local.md
 *.private.md
+
+# 自己下载的开源书正文副本（体积大且版权归原作者，不建议入库）
+sources/books/
+sources/私有/
 
 # 系统与编辑器
 .DS_Store
