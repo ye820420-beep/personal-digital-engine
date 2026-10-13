@@ -36,10 +36,18 @@ This project is that thing.
 
 ## Start in 30 seconds
 
-1. Download [`skills/个人数字化引擎.md`](skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md) — **that single file is the whole engine; install nothing**
-2. Open Doubao / WorkBuddy / Claude / ChatGPT — any of them — start a new chat, **drop the file in**, and say "install this"
-3. Say **"run a sample"** — in 60 seconds you will see what the finished output looks like
-4. If you like it, say **"start"** — it asks questions in six groups; rough answers are fine
+**You do not download anything.** Copy this one line and paste it to your AI:
+
+```
+Read this link and install what it says: https://raw.githubusercontent.com/ye820420-beep/personal-digital-engine/main/skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md
+```
+
+1. Open Doubao / Yuanbao / DeepSeek / WorkBuddy / Claude / ChatGPT — any of them — start a new chat, **paste it, hit enter**
+2. It says "installed", then you say **"run a sample"** — you will see the finished output in 60 seconds
+3. If you like it, say **"start"** — it asks questions in six groups; rough answers are fine
+
+> That link *is* [`skills/个人数字化引擎.md`](skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md) in this repo.
+> **When the repo updates, the link updates** — no re-downloading, no new link to chase.
 
 After that, just toss it a sentence whenever you feel like it:
 
@@ -55,9 +63,25 @@ how cheap it is to log — not on how disciplined you are.
 
 ---
 
-## Install: straight from the repo, no manual download
+## Install: three ways, none of them "download from GitHub"
 
-### Command-line AI (Claude Code / Codex / WorkBuddy / Cursor)
+### A. Send your AI one line (easiest)
+
+Works with any chat AI that can read a link (Doubao / Yuanbao / DeepSeek / ChatGPT / Claude web / WorkBuddy).
+Copy the whole line, paste, enter:
+
+```
+Read this link and install what it says: https://raw.githubusercontent.com/ye820420-beep/personal-digital-engine/main/skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md
+```
+
+**If the AI cannot open links**, fall back to one of these:
+
+| Situation | What to do |
+|---|---|
+| I just want to read the file | Open [`skills/个人数字化引擎.md`](skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md) → **Raw** (top right) → select all → copy |
+| I want the file to upload myself | `./install.sh here` (Windows: `install.bat here`) writes `个人数字化引擎.md` to the current folder |
+
+### B. Command-line AI (Claude Code / Codex / WorkBuddy / Cursor)
 
 **One line. It installs into every AI tool already on your machine:**
 
@@ -89,14 +113,17 @@ and needs no keys** — read `install.sh` before you run it, it is 100 lines of 
 > By default it only touches tools whose folder **already exists**; everything else is
 > skipped, so it will not litter your machine. Force all: `./install.sh all`.
 
-### Chat AIs (Doubao / Yuanbao / DeepSeek / ChatGPT / Claude web)
+### C. What to say after installing (the boot phrase)
 
-These have no "install" entry point — **dropping the file into the chat is the install**:
+However you installed it, start every new chat with this line:
 
-1. Open [`skills/个人数字化引擎.md`](skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md), then **Raw** in the top-right
-2. Start a new chat, drag the file in, say **"install this"**
+```
+You have the Personal Digital Engine installed. Read 流水账-YYYY-MM.md and 我的档案.md first,
+then answer me in three lines: how many entries this month / how many days I skipped /
+what I should backfill today. After that, log whatever I say — three lines, nothing more.
+```
 
-Want the file locally instead? `./install.sh here` drops `个人数字化引擎.md` in the current folder.
+> The boot phrase also lives inside the skill file, so the AI will remind you.
 
 ---
 
