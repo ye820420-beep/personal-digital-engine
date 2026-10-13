@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>个人仪表盘 · 2026-10-13</title>
+<style>
+:root{
+  --bg:#0B0E14; --card:#141A24; --card2:#1A2130; --line:#242E3C;
+  --txt:#E6EAF2; --dim:#8A94A6;
+  --acc:#5B8CFF; --acc2:#7A5BFF;
+  --red:#FF5C5C; --yel:#FFB224; --grn:#2ED47A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);
+  font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  padding:22px 16px 40px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto}
+.mono{font-variant-numeric:tabular-nums}
+
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+h1{font-size:19px;font-weight:650;letter-spacing:.5px}
+.sub{font-size:12px;color:var(--dim);margin-top:3px}
+.ring{width:62px;height:62px;flex:none}
+
+/* tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;
+  scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;font-size:12.5px;padding:7px 13px;border-radius:20px;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);color:var(--dim);
+  white-space:nowrap;transition:.15s}
+.tab:hover{color:var(--txt)}
+.tab.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent;font-weight:600}
+.panel{display:none}
+.panel.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.hero{background:linear-gradient(135deg,#17203A,#1B1735);border:1px solid var(--line);
+  border-radius:18px;padding:18px 20px;display:flex;align-items:center;gap:20px;margin-bottom:12px}
+.hero .big{font-size:46px;font-weight:700;line-height:1;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lbl{font-size:12px;color:var(--dim);margin-bottom:6px}
+.hero .verdict{font-size:14px;color:#C9D2E3}
+.hero .verdict b{color:var(--txt)}
+
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+@media(max-width:560px){.strip{grid-template-columns:repeat(2,1fr)}}
+.st{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 13px}
+.st .k{font-size:11px;color:var(--dim)}
+.st .v{font-size:19px;font-weight:650;margin-top:2px}
+
+.block{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin-bottom:12px}
+.block h2{font-size:13px;color:var(--dim);font-weight:600;letter-spacing:.6px;margin-bottom:12px}
+.block h2 span{float:right;font-weight:400;letter-spacing:0}
+
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.c{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 15px}
+.c .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.c .t{font-size:14px;font-weight:600}
+.pill{font-size:11px;padding:2px 9px;border-radius:20px}
+.mets{display:flex;flex-wrap:wrap;gap:6px}
+.met{background:var(--card2);border-radius:8px;padding:5px 9px;font-size:11px;color:var(--dim)}
+.met b{color:var(--txt);font-weight:600;margin-left:4px}
+.c .note{font-size:11px;color:var(--dim);margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+
+.radarwrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.radarwrap svg{width:230px;height:230px;flex:none}
+.dimlist{flex:1;min-width:200px;display:flex;flex-direction:column;gap:7px}
+.dimrow{display:flex;align-items:center;gap:9px;font-size:13px}
+.bar{flex:1;height:5px;background:#212A38;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+.num{width:26px;text-align:right;color:var(--dim);font-size:12px}
+.dname{width:52px;flex:none}
+
+.cash{background:linear-gradient(135deg,#131B28,#171A2B);border:1px solid var(--line);
+  border-radius:18px;padding:16px 18px;margin-bottom:12px}
+.cash .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.cash .row .t{font-size:13px;font-weight:600}
+.cash .row .bal{font-size:15px;font-weight:650}
+.bars{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.bl{display:flex;align-items:center;gap:9px;font-size:12px}
+.bl .bn{width:38px;color:var(--dim);flex:none}
+.bl .bt{flex:1;height:7px;background:#1E2734;border-radius:4px;overflow:hidden}
+.bl .bt i{display:block;height:100%;border-radius:4px}
+.bl .bv{width:74px;text-align:right;flex:none}
+.cats{display:flex;flex-direction:column;gap:6px}
+.cat{display:flex;align-items:center;gap:9px;font-size:11.5px}
+.cat .cn{width:64px;flex:none;color:var(--dim)}
+.cat .cb{flex:1;height:5px;background:#1E2734;border-radius:3px;overflow:hidden}
+.cat .cb i{display:block;height:100%;background:linear-gradient(90deg,#7A5BFF,#5B8CFF);border-radius:3px}
+.cat .cv{width:66px;text-align:right}
+.tip{font-size:11.5px;color:#9FB0CC;margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.heat{display:flex;gap:5px;margin-top:11px}
+.heat i{flex:1;height:22px;border-radius:6px;background:#1C2432}
+.heat .on{background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.heatlab{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);margin-top:5px}
+
+.focus{background:linear-gradient(90deg,rgba(255,92,92,.14),rgba(255,92,92,.03));
+  border:1px solid rgba(255,92,92,.35);border-radius:16px;padding:15px 17px;margin-bottom:12px}
+.focus .tag{font-size:11px;color:var(--red);font-weight:700;letter-spacing:.8px;margin-bottom:6px}
+.focus .ft{font-size:16px;font-weight:650;margin-bottom:6px}
+.focus .fd{font-size:13px;color:#C9D2E3;margin-bottom:9px}
+.focus .fa{font-size:12px;background:rgba(255,92,92,.13);border-radius:9px;padding:8px 11px;color:#FFC9C9}
+.focus .fa b{color:#fff}
+.src{display:inline-block;font-size:10.5px;color:#7FB3FF;background:rgba(91,140,255,.13);
+  border:1px solid rgba(91,140,255,.28);border-radius:7px;padding:4px 9px;margin-bottom:9px}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--dim);font-weight:600;font-size:11px;padding:0 8px 9px 0;letter-spacing:.5px}
+td{padding:9px 8px 9px 0;border-top:1px solid var(--line);vertical-align:top}
+td.why{color:var(--dim)}
+td.act b{color:var(--grn)}
+.pri{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+tr.due td{border-top-color:rgba(255,178,36,.4)}
+
+.todo{display:flex;flex-direction:column;gap:8px}
+.ti{display:flex;align-items:center;gap:10px;font-size:12.5px;
+  background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:9px 12px}
+.ti .ck{width:13px;height:13px;border-radius:4px;border:1.5px solid #3A465A;flex:none}
+.ti .ck.on{background:var(--grn);border-color:var(--grn)}
+.ti .tt{flex:1}
+.ti .tm{font-size:11px;color:var(--dim)}
+.ti.due{border-color:rgba(255,178,36,.45)}
+.ti.due .tm{color:var(--yel)}
+
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--dim);margin-top:8px;flex-wrap:wrap}
+.legend s{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px;text-decoration:none;vertical-align:middle}
+
+footer{text-align:center;font-size:11px;color:#5C6678;margin-top:18px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>个人仪表盘</h1>
+      <div class="sub">样例 · 小林 &nbsp;·&nbsp; 更新于 <span class="mono" id="mdate"></span> &nbsp;·&nbsp; 第 <span class="mono" id="mdays"></span> 天</div>
+    </div>
+    <div class="ring" id="ring"></div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <!-- 总览 -->
+  <div class="panel on" id="p-main">
+    <div class="hero">
+      <div><div class="lbl">综合状态</div><div class="big mono" id="total"></div></div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="block"><h2>本月现金流</h2><div id="cash"></div></div>
+    <div class="block"><h2>六维雷达</h2>
+      <div class="radarwrap"><div id="radar"></div><div class="dimlist" id="dimlist"></div></div>
+    </div>
+    <div class="grid2" id="cards"></div>
+    <div class="focus" id="focus"></div>
+    <div class="block"><h2>待修问题 TOP 3</h2><table id="issues"></table></div>
+    <div class="block"><h2>日常琐事（到期项优先）</h2><div class="todo" id="todo"></div></div>
+  </div>
+
+  <!-- 身体 -->
+  <div class="panel" id="p-body">
+    <div class="strip" id="bs-strip"></div>
+    <div class="block"><h2>体重 <span>近 12 周</span></h2><div id="bs-weight"></div></div>
+    <div class="block"><h2>睡眠时长 <span>近 7 天</span></h2><div id="bs-sleep"></div></div>
+    <div class="block"><h2>摄入 vs 消耗 <span>近 7 天 · kcal</span></h2><div id="bs-intake"></div></div>
+    <div class="block"><h2>最近记录</h2><table id="bs-log"></table></div>
+  </div>
+
+  <!-- 情绪 -->
+  <div class="panel" id="p-mood">
+    <div class="strip" id="md-strip"></div>
+    <div class="block"><h2>每日评分 <span>近 14 天</span></h2><div id="md-line"></div></div>
+    <div class="block"><h2>触发事件 <span>哪些事直接拉低评分</span></h2><table id="md-events"></table></div>
+    <div class="block"><h2>恢复方式效果</h2><div id="md-recover"></div></div>
+  </div>
+
+  <!-- 学习 -->
+  <div class="panel" id="p-study">
+    <div class="strip" id="st-strip"></div>
+    <div class="block"><h2>每周投入 <span>近 8 周 · 分钟</span></h2><div id="st-week"></div></div>
+    <div class="block"><h2>在学清单</h2><table id="st-items"></table></div>
+    <div class="block"><h2>下一步</h2><div id="st-next"></div></div>
+  </div>
+
+  <!-- 工作 -->
+  <div class="panel" id="p-work">
+    <div class="strip" id="wk-strip"></div>
+    <div class="block"><h2>时间去向 <span>本周合计 32h</span></h2><div id="wk-time"></div></div>
+    <div class="block"><h2>在办事项</h2><table id="wk-tasks"></table></div>
+  </div>
+
+  <!-- 关系 -->
+  <div class="panel" id="p-social">
+    <div class="strip" id="sc-strip"></div>
+    <div class="block"><h2>联系人 <span>超过 30 天未联系会标红</span></h2><table id="sc-people"></table></div>
+    <div class="block"><h2>本周互动</h2><div id="sc-week"></div></div>
+    <div class="block"><h2>待修复</h2><div class="todo" id="sc-fix"></div></div>
+  </div>
+
+  <!-- 财务 -->
+  <div class="panel" id="p-money">
+    <div class="strip" id="mn-strip"></div>
+    <div class="block"><h2>收支明细 <span>本月</span></h2><table id="mn-log"></table></div>
+    <div class="block"><h2>分类占比</h2><div id="mn-cats"></div></div>
+    <div class="block"><h2>近 6 个月支出</h2><div id="mn-trend"></div></div>
+  </div>
+
+  <footer>
+    数据全部存在你自己的设备里 · 可随时带走、换任何 AI 接着用<br>
+    本页由《个人数字化引擎》生成本地文件，不上传任何服务器
+  </footer>
+</div>
+
+<script>
+/* ==================== 数据区（改成你自己的） ==================== */
+const META = {date:"2026-10-13", days:12, total:49, streak:12, records:163};
+const VERDICT = "六个维度里 <b>4 个在黄线以下</b>。最该先修的不是最差的那个，是<b>修好它能带动其他五项</b>的那个 —— 学习（35）。";
+
+const CASH = {
+  income:8000, expense:7340, balance:660, guessed:6000,
+  cats:[{n:"餐饮外卖",v:1860},{n:"房租房贷",v:1800},{n:"购物",v:1180},{n:"人情往来",v:880},{n:"其他",v:820},{n:"交通",v:460},{n:"订阅会员",v:340}],
+  tip:"跟月初自估的 6,000 相比，实际多出 <b>1,340</b> —— 全在零散支出里。"
+};
+const HEAT = [1,1,0,1,1,1,1];
+
+const DIMS = [
+  {name:"身体", score:48, level:"red",  note:"凌晨 1 点睡 · 久坐 10 小时 · 本周 0 次运动",
+   metrics:[["BMI","26.1 超重"],["睡眠","7.0 h"],["摄入/消耗","2630 / 2110"]]},
+  {name:"情绪", score:55, level:"yel",  note:"基线 5/10 · 周日晚最差 · 恢复方式无效",
+   metrics:[["自评","5 / 10"],["波动","周日晚"],["恢复","刷短视频"]]},
+  {name:"学习", score:35, level:"red",  note:"连续 3 个月没完整学完任何东西",
+   metrics:[["近3月完成","0 项"],["进行中","英语（未启动）"],["日均投入","0 分钟"]]},
+  {name:"工作", score:60, level:"yel",  note:"汇报拖了两周，持续占用心理带宽",
+   metrics:[["可支配","2 h/天"],["在办","3 件"],["逾期","1 件"]]},
+  {name:"关系", score:45, level:"red",  note:"每周稳定联系 2 人 · 支撑单薄",
+   metrics:[["周联系","2 人"],["最依赖","室友"],["待修复","1 段"]]},
+  {name:"财务", score:52, level:"yel",  note:"记账后发现：实际比自估高 1,340",
+   metrics:[["月结余","+660"],["负债","无"],["记账","第 12 天"]]}
+];
+
+const FOCUS = {
+  tag:"本周最要命的一件事",
+  title:"你每天多吃了约 520 大卡，自己不知道",
+  source:"依据：《高性价比人生指南》第 2 节第 9 条 · 证据等级 A",
+  desc:"把三天饭照丢给 AI 估算后：日均摄入 2630，久坐状态下消耗约 2110。差额 520 —— 差不多等于<b>一个月胖 2 公斤</b>。这不是懒，是没人给你算过这笔账。",
+  act:"明天开始：<b>晚饭前拍一张照</b>，丢给 AI 估个大概，30 秒。"
+};
+
+const ISSUES = [
+  {pri:"高", dim:"身体", issue:"每天多摄入约 520 大卡", why:"一个月约 +2kg，且睡得晚", act:"晚饭前拍照让 AI 估算", status:"待启动"},
+  {pri:"高", dim:"学习", issue:"连续 3 个月没学完任何东西", why:"35 分，六维最低，拖累其余", act:"今晚 20:00 只学 25 分钟", status:"待启动"},
+  {pri:"中", dim:"工作", issue:"汇报拖了两周", why:"持续占用心理带宽", act:"明天上午写第一页大纲", status:"待启动"}
+];
+
+const TODO = [
+  {t:"给医保续费", due:true, m:"还剩 3 天"},
+  {t:"拖了两周的汇报 · 第一页大纲", due:true, m:"逾期 14 天"},
+  {t:"换季洗窗帘", due:false, m:"每年 11 月"},
+  {t:"周日给妈打个电话", due:false, m:"每周日"},
+  {t:"想法：外卖预算单独设个上限", due:false, m:"随手记"}
+];
+
+/* 身体板块 */
+const BODY = {
+  weight:[80.6,80.4,80.5,80.2,80.3,80.1,80.2,80.0,80.1,79.9,80.0,80.0],
+  weightLabels:["1周","","","","6周","","","","","","","本周"],
+  target:74,
+  sleep:[7.2,6.5,7.0,6.8,7.5,5.9,7.0],
+  bedTime:["01:20","01:40","00:55","01:10","02:05","00:30","01:00"],
+  intake:[2480,2760,2310,2630,2900,2150,2630],
+  burn:2110,
+  steps:3200,
+  log:[
+    ["10-13","早餐 豆浆+肉包×2+蛋","555 kcal"],
+    ["10-13","午餐 米饭+宫保鸡丁+青菜","745 kcal"],
+    ["10-13","夜宵 奶茶 500ml 全糖","400 kcal"],
+    ["10-12","走路 3200 步 · 无刻意运动","—"],
+    ["10-12","睡眠 7.0h（凌晨 1:20 入睡）","—"]
+  ]
+};
+
+/* 情绪板块 */
+const MOOD = {
+  scores:[5,6,5,4,6,5,7,5,4,3,6,5,5,6],
+  mean:5.1,
+  events:[
+    ["周日晚上","3 分","想到周一，什么都不想做"],
+    ["汇报截止前一天","4 分","拖延带来的持续自责"],
+    ["跟朋友吃饭那天","7 分","本月最高分"],
+    ["刷短视频超过 2 小时","下降 1–2 分","当时放松，之后更累"]
+  ],
+  recover:[{n:"刷短视频",v:20,c:"#FF5C5C",t:"当时放松，之后更累"},
+           {n:"散步",v:70,c:"#2ED47A",t:"本月只做过 2 次"},
+           {n:"洗澡",v:55,c:"#5B8CFF",t:"最便宜，几乎每天可用"}]
+};
+
+/* 学习板块 */
+const STUDY = {
+  streak:0, monthMin:0, finished:0, target:25,
+  weekly:[0,0,0,0,0,0,0,0],
+  items:[["英语（背单词）","未启动","想学但一直没开始"],
+         ["Excel 函数","学过一点","停留在会 SUM 的程度"],
+         ["做饭","会 3 道菜","重复做，没有新增"]],
+  next:"别定计划。今晚 20:00，只学 25 分钟，到点就停。25 分钟连×12 天，就是本月第一笔有效投入。"
+};
+
+/* 工作板块 */
+const WORK = {
+  hours:[{n:"执行",v:14.0},{n:"会议",v:8.5},{n:"沟通",v:5.5},{n:"杂事/等待",v:4.0}],
+  avail:"2 h/天",
+  tasks:[["季度汇报","逾期 14 天","高","明天上午写第一页大纲"],
+         ["对接新供应商","进行中","中","周四前发第一版需求"],
+         ["整理交接文档","未开始","低","排在汇报之后"]],
+  note:"可支配时间每天 2 小时，但被会议和零散沟通切碎 —— <b>真正整块的时间每周不到 6 小时</b>。汇报一直拖，不是因为懒，是因为它需要一个完整的 2 小时。"
+};
+
+/* 关系板块 */
+const SOCIAL = {
+  weekContacts:9, highMaintain:2,
+  people:[["妈","上次联系 21 天前",41,"red"],
+          ["朋友 A","上次联系 3 天前",3,"grn"],
+          ["室友","每天",0,"grn"],
+          ["同事 B","上次联系 1 天前",1,"grn"],
+          ["大学同学 C","上次联系 68 天前",68,"red"]],
+  weekTrend:[1,2,0,1,2,1,2],
+  fix:["有一段关系想修复，但一直没开口 —— 拖了 4 个月"]
+};
+
+/* 财务板块 */
+const MONEY = {
+  log:[["10-13","餐饮","外卖 晚餐","-42"],["10-12","订阅","视频会员 自动续费","-25"],
+       ["10-11","交通","打车 ×2","-56"],["10-10","人情","同事结婚随礼","-800"],
+       ["10-10","工资","10 月工资","+8000"],["10-08","餐饮","外卖 午餐","-38"],
+       ["10-06","购物","日用补货","-186"],["10-05","餐饮","朋友聚餐 AA","-175"]],
+  trend:[6120,7480,6390,7010,6650,7340],
+  note:"当月最大单笔：人情往来 800（占支出 10.9%）。自动续费类本月扣了 3 笔，其中 2 笔本月未使用。"
+};
+/* ==================== 数据区结束 ==================== */
+
+const C = {red:"#FF5C5C", yel:"#FFB224", grn:"#2ED47A"};
+const lv = l => C[l] || C.grn;
+const fmt = n => n.toLocaleString("zh-CN");
+const el = id => document.getElementById(id);
+
+/* ---- 通用图表 ---- */
+function line(vals, o){
+  o = o || {};
+  const w=o.w||660, h=o.h||130, pad=6;
+  const mn=o.min!==undefined?o.min:Math.min.apply(null,vals)-0.5;
+  const mx=o.max!==undefined?o.max:Math.max.apply(null,vals)+0.5;
+  const X=i=>pad+i*(w-2*pad)/(vals.length-1);
+  const Y=v=>h-pad-((v-mn)/(mx-mn||1))*(h-2*pad);
+  const pts=vals.map((v,i)=>[X(i),Y(v)]);
+  const d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  let s=`<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">`;
+  s+=`<defs><linearGradient id="lg${o.id||0}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="${o.color||'#5B8CFF'}" stop-opacity=".35"/>
+    <stop offset="100%" stop-color="${o.color||'#5B8CFF'}" stop-opacity="0"/></linearGradient></defs>`;
+  s+=`<path d="${d} L ${w-pad} ${h-pad} L ${pad} ${h-pad} Z" fill="url(#lg${o.id||0})"/>`;
+  s+=`<path d="${d}" fill="none" stroke="${o.color||'#5B8CFF'}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p,i)=>{s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${o.dot&&o.dot[i]?o.dot[i]:(o.color||'#5B8CFF')}" stroke="#0B0E14" stroke-width="1.5"/>`;});
+  if(o.ref!==undefined){
+    const y=Y(o.ref);
+    s+=`<line x1="${pad}" y1="${y.toFixed(1)}" x2="${w-pad}" y2="${y.toFixed(1)}" stroke="#4A5568" stroke-width="1" stroke-dasharray="5 4"/>`;
+  }
+  s+=`</svg>`;
+  if(o.labels){
+    s+=`<div class="heatlab" style="margin-top:2px">${o.labels.map(l=>`<span>${l}</span>`).join("")}</div>`;
+  }
+  return s;
+}
+function vbars(vals, o){
+  o=o||{};
+  const w=o.w||660, h=o.h||130, n=vals.length, bw=(w-20)/n*0.62, gap=(w-20)/n;
+  const mx=Math.max.apply(null,vals)*1.15||1;
+  let s=`<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">`;
+  vals.forEach((v,i)=>{
+    const bh=Math.max(2,(v/mx)*(h-24)), x=10+i*gap+(gap-bw)/2, y=h-14-bh;
+    s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="4" fill="${typeof o.colors==='function'?o.colors(v,i):(o.color||'#5B8CFF')}"/>`;
+    if(v>0&&o.showVal)s+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" font-size="11" fill="#8A94A6">${v}</text>`;
+  });
+  s+=`</svg>`;
+  return s;
+}
+function hbars(items, o){
+  o=o||{};
+  const mx=Math.max.apply(null,items.map(i=>i.v))||1;
+  return items.map(i=>`<div class="cat" style="margin-bottom:6px">
+    <span class="cn" style="width:${o.w||72}px">${i.n}</span>
+    <span class="cb"><i style="width:${(i.v/mx*100).toFixed(1)}%;background:${i.c||'linear-gradient(90deg,#7A5BFF,#5B8CFF)'}"></i></span>
+    <span class="cv mono" style="color:${i.tc||'#E6EAF2'}">${i.t!==undefined?i.t:(fmt(i.v)+(o.unit||""))}</span></div>`).join("");
+}
+function strip(arr){
+  return `<div class="strip" style="margin-bottom:12px">`+arr.map(s=>
+    `<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]||'#E6EAF2'}">${s[1]}</div></div>`).join("")+`</div>`;
+}
+function tbl(rows, heads, widths){
+  return `<table><tr>${heads.map((h,i)=>`<th${widths&&widths[i]?` style="width:${widths[i]}px"`:''}>${h}</th>`).join("")}</tr>`+
+    rows.map(r=>`<tr${r.due?' class="due"':''}>${r.c.map((c,i)=>`<td class="${i===heads.length-1&&r.hl?'act':''}">${c}</td>`).join("")}</tr>`).join("")+`</table>`;
+}
+
+/* ---- Tab ---- */
+const TABS=[["p-main","总览"],["p-body","身体"],["p-mood","情绪"],["p-study","学习"],["p-work","工作"],["p-social","关系"],["p-money","财务"]];
+el("tabs").innerHTML=TABS.map((t,i)=>`<div class="tab${i===0?" on":""}" data-p="${t[0]}">${t[1]}</div>`).join("");
+el("tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tab"); if(!b)return;
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); el(b.dataset.p).classList.add("on");
+});
+
+el("mdate").textContent=META.date;
+el("mdays").textContent=META.days;
+el("total").textContent=META.total;
+el("verdict").innerHTML=VERDICT;
+
+/* ---- 总览 ---- */
+el("strip").innerHTML=[
+  ["连续记录",META.streak+" 天","#5B8CFF"],
+  ["本月记录",META.records+" 条","#7A5BFF"],
+  ["本月结余",(CASH.balance>=0?"+":"")+fmt(CASH.balance),CASH.balance>=0?C.grn:C.red],
+  ["本月支出",fmt(CASH.expense),CASH.expense>CASH.guessed?C.yel:C.grn]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+
+(function(){const r=26,cir=2*Math.PI*r,p=META.total/100,col=META.total>=75?C.grn:META.total>=55?C.yel:C.red;
+el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="#222B38" stroke-width="6"/><circle cx="31" cy="31" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(cir*p).toFixed(1)} ${cir.toFixed(1)}" transform="rotate(-90 31 31)"/><text x="31" y="35" text-anchor="middle" font-size="15" font-weight="700" fill="${col}">${META.total}</text></svg>`;})();
+
+(function(){
+  const max=Math.max(CASH.income,CASH.expense),bal=CASH.balance;
+  el("cash").innerHTML=`<div class="row"><span class="t">收入 / 支出</span>
+    <span class="bal mono" style="color:${bal>=0?C.grn:C.red}">结余 ${bal>=0?"+":""}${fmt(bal)}</span></div>
+    <div class="bars">
+      <div class="bl"><span class="bn">收入</span><span class="bt"><i style="width:${(CASH.income/max*100).toFixed(1)}%;background:${C.grn}"></i></span><span class="bv mono">${fmt(CASH.income)}</span></div>
+      <div class="bl"><span class="bn">支出</span><span class="bt"><i style="width:${(CASH.expense/max*100).toFixed(1)}%;background:${C.red}"></i></span><span class="bv mono">${fmt(CASH.expense)}</span></div>
+    </div>
+    <div class="cats">${CASH.cats.slice(0,5).map(c=>`<div class="cat"><span class="cn">${c.n}</span><span class="cb"><i style="width:${(c.v/CASH.cats[0].v*100).toFixed(1)}%"></i></span><span class="cv mono">${fmt(c.v)}</span></div>`).join("")}</div>
+    <div class="tip">${CASH.tip}</div>
+    <div class="tip" style="border:none;padding-top:2px"><span style="color:#8A94A6">近 7 天记录</span>
+      <div class="heat">${HEAT.map(h=>`<i class="${h?"on":""}"></i>`).join("")}</div>
+      <div class="heatlab"><span>7 天前</span><span>今天</span></div></div>`;
+})();
+
+(function(){
+  const R=78,CX=115,CY=112,N=6;
+  const pt=(i,ratio)=>{const a=(-90+i*(360/N))*Math.PI/180;return[CX+R*ratio*Math.cos(a),CY+R*ratio*Math.sin(a)];};
+  const poly=ratio=>Array.from({length:N},(_,i)=>pt(i,ratio).map(v=>v.toFixed(1)).join(",")).join(" ");
+  let s=`<svg viewBox="0 0 230 224" xmlns="http://www.w3.org/2000/svg">`;
+  [0.25,0.5,0.75,1].forEach(l=>{s+=`<polygon points="${poly(l)}" fill="none" stroke="#232D3C" stroke-width="1"/>`;});
+  for(let i=0;i<N;i++){const[x,y]=pt(i,1);s+=`<line x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#232D3C" stroke-width="1"/>`;}
+  const dp=DIMS.map((d,i)=>pt(i,d.score/100));
+  s+=`<polygon points="${dp.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="rgba(91,140,255,.22)" stroke="#5B8CFF" stroke-width="2" stroke-linejoin="round"/>`;
+  dp.forEach((p,i)=>{s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${lv(DIMS[i].level)}" stroke="#0B0E14" stroke-width="1.5"/>`;});
+  DIMS.forEach((d,i)=>{const[x,y]=pt(i,1.24);let a="middle";if(x>CX+6)a="start";else if(x<CX-6)a="end";
+    s+=`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${a}" font-size="12" fill="#C9D2E3">${d.name}</text>`;
+    s+=`<text x="${x.toFixed(1)}" y="${(y+18).toFixed(1)}" text-anchor="${a}" font-size="11" font-weight="700" fill="${lv(d.level)}">${d.score}</text>`;});
+  s+=`</svg>`;el("radar").innerHTML=s;
+})();
+
+el("dimlist").innerHTML=DIMS.map(d=>{const c=lv(d.level);
+  return`<div class="dimrow"><span class="dname">${d.name}</span><span class="bar"><i style="width:${d.score}%;background:${c}"></i></span><span class="num mono">${d.score}</span></div>`;}).join("");
+
+el("cards").innerHTML=DIMS.map(d=>{const c=lv(d.level);
+  return`<div class="c"><div class="top"><span class="t">${d.name}</span><span class="pill" style="color:${c};background:${c}22">${d.score}</span></div>
+  <div class="mets">${d.metrics.map(m=>`<span class="met">${m[0]}<b>${m[1]}</b></span>`).join("")}</div>
+  <div class="note">${d.note}</div></div>`;}).join("");
+
+const f=FOCUS;
+el("focus").innerHTML=(f.source?`<div class="src">${f.source}</div>`:"")+
+  `<div class="tag">${f.tag}</div><div class="ft">${f.title}</div><div class="fd">${f.desc}</div><div class="fa">${f.act}</div>`;
+
+el("issues").innerHTML=tbl(ISSUES.map(i=>({c:[`<span class="pri" style="color:${i.pri==="高"?C.red:i.pri==="中"?C.yel:C.grn};background:${(i.pri==="高"?C.red:i.pri==="中"?C.yel:C.grn)}1F">${i.pri}</span>`,i.dim,i.issue,`<span style="color:var(--dim)">${i.why}</span>`,i.act,`<span style="color:var(--dim)">${i.status}</span>`]})),
+  ["优先级","维度","问题","为什么","第一步","状态"],[44,52,0,150,150,62]);
+
+el("todo").innerHTML=TODO.map(t=>`<div class="ti ${t.due?"due":""}"><span class="ck"></span><span class="tt">${t.t}</span><span class="tm">${t.m}</span></div>`).join("");
+
+/* ---- 身体 ---- */
+el("bs-strip").innerHTML=[
+  ["当前体重",BODY.weight[BODY.weight.length-1]+" kg","#E6EAF2"],
+  ["距目标",((BODY.weight[BODY.weight.length-1]-BODY.target).toFixed(1))+" kg",C.yel],
+  ["日均盈余","+520 kcal",C.red],
+  ["日均步数",fmt(BODY.steps),C.yel]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+el("bs-weight").innerHTML=line(BODY.weight,{id:1,ref:BODY.target})+
+  `<div class="legend"><span><s style="background:#5B8CFF"></s>实测体重</span><span><s style="background:#4A5568"></s>目标线 74kg</span><span style="margin-left:auto">12 周内变化 −0.6kg（几乎没动）</span></div>`;
+el("bs-sleep").innerHTML=vbars(BODY.sleep,{showVal:true,colors:v=>v>=7?C.grn:v>=6?C.yel:C.red})+
+  `<div class="legend"><span><s style="background:${C.grn}"></s>≥7h 达标</span><span><s style="background:${C.yel}"></s>6–7h</span><span><s style="background:${C.red}"></s>&lt;6h</span><span style="margin-left:auto">平均入睡时间 01:1x</span></div>`;
+el("bs-intake").innerHTML=line(BODY.intake,{id:2,ref:BODY.burn,color:"#FF8A5C",max:3200,min:1800})+
+  `<div class="legend"><span><s style="background:#FF8A5C"></s>每日摄入</span><span><s style="background:#4A5568"></s>消耗线 2110</span><span style="margin-left:auto">7 天里 5 天超标</span></div>`;
+el("bs-log").innerHTML=tbl(BODY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],`<b>${r[2]}</b>`]})),["日期","内容","估算"],[70,0,120]);
+
+/* ---- 情绪 ---- */
+el("md-strip").innerHTML=[
+  ["本月均值",MOOD.mean+" / 10",C.yel],
+  ["最高 / 最低","7 / 3",C.grn],
+  ["低谷时段","周日晚上",C.red],
+  ["有效恢复","散步 · 洗澡",C.grn]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="font-size:${s[1].length>6?"15px":"19px"};color:${s[2]}">${s[1]}</div></div>`).join("");
+el("md-line").innerHTML=line(MOOD.scores,{id:3,ref:MOOD.mean,color:"#7A5BFF",min:2,max:8,
+    dot:MOOD.scores.map(v=>v<=3?C.red:v>=7?C.grn:"#7A5BFF")})+
+  `<div class="legend"><span><s style="background:#7A5BFF"></s>每日评分</span><span><s style="background:#4A5568"></s>均值 5.1</span><span><s style="background:${C.red}"></s>≤3 分</span><span style="margin-left:auto">近 14 天有 2 天跌到 3 分</span></div>`;
+el("md-events").innerHTML=tbl(MOOD.events.map(r=>({c:[r[0],`<b style="color:${r[1].includes('下降')?C.yel:C.red}">${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["触发事件","评分","说明"],[180,90,0]);
+el("md-recover").innerHTML=hbars(MOOD.recover,{w:64,unit:""})+
+  `<div class="tip" style="border:none">现在的默认恢复方式是排序最末的那一个 —— 它不是没用，是<b>把第二天的状态也搭进去了</b>。</div>`;
+
+/* ---- 学习 ---- */
+el("st-strip").innerHTML=[
+  ["连续投入","0 天",C.red],
+  ["本月投入",STUDY.monthMin+" 分钟",C.red],
+  ["完成项",STUDY.finished+" 项",C.red],
+  ["今日目标",STUDY.target+" 分钟",C.grn]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+el("st-week").innerHTML=vbars(STUDY.weekly,{showVal:true,colors:v=>v>0?C.grn:"#2A3342"})+
+  `<div class="legend"><span style="margin-left:auto">连续 8 周为 0 —— 这不是退步，是从没启动过</span></div>`;
+el("st-items").innerHTML=tbl(STUDY.items.map(r=>({c:[r[0],`<b>${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["在学 / 想学","状态","卡在哪"],[0,110,0]);
+el("st-next").innerHTML=`<div class="tip" style="border:none;padding-top:0;font-size:13px;line-height:1.7">${STUDY.next}</div>`;
+
+/* ---- 工作 ---- */
+el("wk-strip").innerHTML=[
+  ["可支配",WORK.avail,"#E6EAF2"],
+  ["整块时间","<6 h/周",C.red],
+  ["在办","3 件",C.yel],
+  ["逾期","1 件",C.red]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+el("wk-time").innerHTML=hbars(WORK.hours.map((h,i)=>({n:h.n,v:h.v,c:["#5B8CFF","#7A5BFF","#FFB224","#FF5C5C"][i]})),{w:80,unit:"h"})+
+  `<div class="tip">${WORK.note}</div>`;
+el("wk-tasks").innerHTML=tbl(WORK.tasks.map(r=>({c:[r[0],r[1].includes("逾期")?`<b style="color:${C.red}">${r[1]}</b>`:r[1],
+    `<span class="pri" style="color:${r[2]==="高"?C.red:r[2]==="中"?C.yel:C.grn};background:${(r[2]==="高"?C.red:r[2]==="中"?C.yel:C.grn)}1F">${r[2]}</span>`,r[3]]})),
+  ["事项","状态","优先级","下一步"],[0,120,70,0]);
+
+/* ---- 关系 ---- */
+el("sc-strip").innerHTML=[
+  ["本周互动",SOCIAL.weekContacts+" 次",C.grn],
+  ["稳定维系",SOCIAL.highMaintain+" 人",C.red],
+  ["超 30 天未联系","2 人",C.red],
+  ["最长失联","68 天",C.red]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="color:${s[2]}">${s[1]}</div></div>`).join("");
+el("sc-people").innerHTML=tbl(SOCIAL.people.map(r=>({c:[r[0],`<b style="color:${r[3]==="red"?C.red:C.grn}">${r[1]}</b>`],due:r[3]==="red"})),
+  ["联系人","上次联系"],[0,0]);
+el("sc-week").innerHTML=vbars(SOCIAL.weekTrend,{showVal:true,color:"#2ED47A",h:110})+
+  `<div class="legend"><span style="margin-left:auto">互动集中在室友和同事 —— 真正想维系的人反而在流失</span></div>`;
+el("sc-fix").innerHTML=SOCIAL.fix.map(t=>`<div class="ti due"><span class="ck"></span><span class="tt">${t}</span></div>`).join("");
+
+/* ---- 财务 ---- */
+el("mn-strip").innerHTML=[
+  ["本月收入",fmt(CASH.income),C.grn],
+  ["本月支出",fmt(CASH.expense),C.yel],
+  ["结余",(CASH.balance>=0?"+":"")+fmt(CASH.balance),CASH.balance>=0?C.grn:C.red],
+  ["最大单笔","人情 −800",C.yel]
+].map(s=>`<div class="st"><div class="k">${s[0]}</div><div class="v mono" style="font-size:${String(s[1]).length>8?"14px":"19px"};color:${s[2]}">${s[1]}</div></div>`).join("");
+el("mn-log").innerHTML=tbl(MONEY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],r[2],
+    `<b style="color:${r[3].startsWith("+")?C.grn:C.red}">${r[3]}</b>`]})),["日期","分类","说明","金额（元）"],[70,80,0,100]);
+el("mn-cats").innerHTML=hbars(CASH.cats.map((c,i)=>({n:c.n,v:c.v,c:["#5B8CFF","#7A5BFF","#FFB224","#FF8A5C","#2ED47A","#FF5C5C","#4A5568"][i]})),{w:80,unit:""})+
+  `<div class="tip">餐饮外卖 1,860 元 —— <b>跟房租房贷几乎一样多</b>，但从来没被当成一笔大额支出看待。</div>`;
+el("mn-trend").innerHTML=vbars(MONEY.trend,{showVal:true,h:120,colors:(v,i)=>i===MONEY.trend.length-1?C.yel:"#3D4A60"})+
+  `<div class="legend"><span><s style="background:${C.yel}"></s>本月</span><span style="margin-left:auto">${MONEY.note}</span></div>`;
+</script>
+</body>
+</html>

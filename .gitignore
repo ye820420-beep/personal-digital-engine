@@ -1,0 +1,37 @@
+# 个人数据文件 —— 永远不要提交进仓库
+
+# 本项目的一份负责任，体现在这里：
+# 就算你在自己的数据目录里执行 git add .，下面这些也一个都进不来。
+
+我的档案.md
+问题总表.md
+个人发展矩阵.md
+仪表盘.html
+日常琐事.md
+
+流水账-*.md
+日报-*.md
+日记-*.md
+周报-*.md
+月度结算-*.md
+
+# 隐私目录（放本地副本、凭证、截图原始素材等）
+references/
+private/
+.private/
+.local/
+*.local.md
+*.private.md
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+~$*
+
+# Python / Node 残留
+__pycache__/
+*.pyc
+.venv/
+node_modules/
