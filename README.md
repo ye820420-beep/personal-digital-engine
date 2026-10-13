@@ -51,6 +51,48 @@
 
 ---
 
+## 安装：直接从仓库装，不用手动下载
+
+### 命令行 AI（Claude Code / Codex / WorkBuddy / Cursor）
+
+**一行命令，自动装进你机器上已经装好的工具：**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ye820420-beep/personal-digital-engine/main/install.sh | bash
+```
+
+**Windows**：克隆之后双击 `install.bat`（命令行里跑也一样）
+
+```powershell
+git clone --depth 1 https://github.com/ye820420-beep/personal-digital-engine.git
+cd personal-digital-engine
+install.bat          # 装进已有的工具
+install.bat all      # 没装也给它建目录
+install.bat here     # 只想要一份文件，自己拖给聊天 AI
+```
+
+脚本只做一件事：把 `skills/个人数字化引擎.md` 复制成各工具认得的 `SKILL.md`。
+**它不传任何数据、不联网上报、不需要任何密钥**——你可以打开 `install.sh` 自己看完再跑。
+
+| 工具 | 装到哪 |
+|---|---|
+| Claude Code | `~/.claude/skills/personal-digital-engine/SKILL.md` |
+| Codex | `~/.codex/skills/personal-digital-engine/SKILL.md` |
+| WorkBuddy | `~/.workbuddy/skills/personal-digital-engine/SKILL.md` |
+| Cursor | `~/.cursor/skills/personal-digital-engine/SKILL.md` |
+
+> 默认**只装进目录已存在的工具**，没装的一律跳过，不会给你塞一堆用不上的东西。
+> 想强行全装：`./install.sh all`
+
+### 聊天式 AI（豆包 / 元宝 / DeepSeek / ChatGPT / Claude 网页版）
+
+这类工具没有"安装"入口——**把文件丢进对话框**就是安装：
+
+1. 打开 [`skills/个人数字化引擎.md`](skills/个人数字化引擎.md) → 右上角 **Raw**
+2. 新建对话，把文件拖进去，说 **"装这个"**
+
+---
+
 ## ⭐ 一次部署，长期运行
 
 **核心原则：文件即记忆。AI 的记忆不重要，文件才是记忆。**
@@ -184,6 +226,7 @@
 
 ```
 skills/      个人数字化引擎.md      ← 核心，就这一个文件
+install.sh / install.bat            ← 一行命令装进你的 AI 工具（见"安装"一节）
 sources/  建议源清单.md          ← 决定"建议从哪来"；放开源书和官方文件（可公开）
 private/  （空目录，自己建）      ← 放体检报告/合同/医嘱，永不入库
 templates/   空模板（档案 / 问题总表 / 流水账 / 琐事 / 仪表盘）

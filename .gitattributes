@@ -1,0 +1,12 @@
+# Windows 脚本必须是 CRLF，否则双击运行会报「xxx 不是内部或外部命令」
+# （cmd 逐行解析，只认 CRLF 换行，LF 结尾的 .bat 会被它读成一团乱码）
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# shell 脚本反过来，必须是 LF，带 CR 会报 bad interpreter
+*.sh text eol=lf
+
+# 技能与模板是纯文本，GitHub 上要能直接在网页里读
+*.md text
+*.html text

@@ -55,6 +55,51 @@ how cheap it is to log — not on how disciplined you are.
 
 ---
 
+## Install: straight from the repo, no manual download
+
+### Command-line AI (Claude Code / Codex / WorkBuddy / Cursor)
+
+**One line. It installs into every AI tool already on your machine:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ye820420-beep/personal-digital-engine/main/install.sh | bash
+```
+
+**Windows** — clone, then double-click `install.bat`:
+
+```powershell
+git clone --depth 1 https://github.com/ye820420-beep/personal-digital-engine.git
+cd personal-digital-engine
+install.bat          # tools that are already installed
+install.bat all      # create the folder even if the tool is missing
+install.bat here     # just give me the file, I'll upload it myself
+```
+
+The script does exactly one thing: it copies `skills/个人数字化引擎.md` into the
+`SKILL.md` location each tool expects. **It uploads nothing, phones home to nothing,
+and needs no keys** — read `install.sh` before you run it, it is 100 lines of `cp`.
+
+| Tool | Installs to |
+|---|---|
+| Claude Code | `~/.claude/skills/personal-digital-engine/SKILL.md` |
+| Codex | `~/.codex/skills/personal-digital-engine/SKILL.md` |
+| WorkBuddy | `~/.workbuddy/skills/personal-digital-engine/SKILL.md` |
+| Cursor | `~/.cursor/skills/personal-digital-engine/SKILL.md` |
+
+> By default it only touches tools whose folder **already exists**; everything else is
+> skipped, so it will not litter your machine. Force all: `./install.sh all`.
+
+### Chat AIs (Doubao / Yuanbao / DeepSeek / ChatGPT / Claude web)
+
+These have no "install" entry point — **dropping the file into the chat is the install**:
+
+1. Open [`skills/个人数字化引擎.md`](skills/%E4%B8%AA%E4%BA%BA%E6%95%B0%E5%AD%97%E5%8C%96%E5%BC%95%E6%93%8E.md), then **Raw** in the top-right
+2. Start a new chat, drag the file in, say **"install this"**
+
+Want the file locally instead? `./install.sh here` drops `个人数字化引擎.md` in the current folder.
+
+---
+
 ## ⭐ Deploy once, run forever
 
 **Core principle: the file is the memory. The AI's memory does not matter — the file does.**
@@ -196,6 +241,7 @@ More detail: [`docs/隐私与数据主权.md`](docs/%E9%9A%90%E7%A7%81%E4%B8%8E%
 
 ```
 skills/      个人数字化引擎.md        <- the core. This one file is the engine
+install.sh / install.bat               <- one-line installer for your AI tools (see "Install")
 sources/     建议源清单.md            <- decides where recommendations come from
                                        (open books, official documents — public)
 private/     (create it yourself)     <- medical reports / contracts / doctor's orders
