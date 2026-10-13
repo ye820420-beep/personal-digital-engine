@@ -1,5 +1,11 @@
 # 个人数字化引擎 · Personal Digital Engine
 
+**简体中文** | [English](README_EN.md)
+
+![License](https://img.shields.io/badge/license-CC%20BY%204.0-blue)
+![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)
+![Files](https://img.shields.io/badge/core%20files-1-orange)
+
 > **不是又一个记账 App，也不是又一个习惯打卡表。**
 > 是一个文件——把它丢给任何一个 AI，它就变成你的个人数据系统。
 >
