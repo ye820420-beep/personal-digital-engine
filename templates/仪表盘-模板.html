@@ -589,8 +589,12 @@ const MONEY = {
 };
 /* ==================== 数据区结束 ==================== */
 
-const C = {red:"#FF5C5C", yel:"#FFB224", grn:"#0E9F5D"};
-const lv = l => C[l] || C.grn;
+const C = {red:"#FF5C5C", yel:"#FFB224", grn:"#0E9F5D", gry:"#B0B7C3"};
+/* gry = 暂无数据。level 填错/不认识时一律回退灰色：宁可显示"没数"，不可显示绿灯 */
+const lv = l => C[l] || C.gry;
+/* 分数为 null/非数字 = 该维暂无数据，显示 —，不参与任何计算 */
+const _sn = v => (typeof v==="number" && isFinite(v)) ? v : null;
+const _sd = d => _sn(d.score)===null ? "—" : d.score;
 const fmt = n => n.toLocaleString("zh-CN");
 const el = id => document.getElementById(id);
 
@@ -693,7 +697,7 @@ document.title="个人工作台 · "+META.date;
 el("greet").textContent=h<6?"夜深了":h<11?"上午好":h<14?"中午好":h<18?"下午好":"晚上好";
 el("bdate").textContent=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
 el("bweek").textContent="星期"+"日一二三四五六".charAt(d.getDay());})();
-el("total").textContent=META.total;
+el("total").textContent=_sn(META.total)===null?"—":META.total;
 el("verdict").innerHTML=VERDICT;
 
 /* ---- 总览 ---- */
@@ -711,8 +715,8 @@ function renderStrip(extra){
 }
 renderStrip(0);
 
-(function(){const r=26,cir=2*Math.PI*r,p=META.total/100,col=META.total>=75?C.grn:META.total>=55?C.yel:C.red;
-el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="#E7ECF4" stroke-width="6"/><circle cx="31" cy="31" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(cir*p).toFixed(1)} ${cir.toFixed(1)}" transform="rotate(-90 31 31)"/><text x="31" y="35" text-anchor="middle" font-size="15" font-weight="700" fill="${col}">${META.total}</text></svg>`;})();
+(function(){const r=26,cir=2*Math.PI*r,_t=_sn(META.total),p=(_t||0)/100,col=_t===null?C.gry:_t>=75?C.grn:_t>=55?C.yel:C.red;
+el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="#E7ECF4" stroke-width="6"/><circle cx="31" cy="31" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(cir*p).toFixed(1)} ${cir.toFixed(1)}" transform="rotate(-90 31 31)"/><text x="31" y="35" text-anchor="middle" font-size="${_t===null?11:15}" font-weight="700" fill="${col}">${_t===null?"不足":_t}</text></svg>`;})();
 
 (function(){
   const max=Math.max(CASH.income,CASH.expense)||1,bal=CASH.balance;
@@ -762,22 +766,22 @@ renderHeat30();
   let s=`<svg viewBox="0 0 230 224" xmlns="http://www.w3.org/2000/svg">`;
   [0.25,0.5,0.75,1].forEach(l=>{s+=`<polygon points="${poly(l)}" fill="none" stroke="#E4E9F2" stroke-width="1"/>`;});
   for(let i=0;i<N;i++){const[x,y]=pt(i,1);s+=`<line x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#E4E9F2" stroke-width="1"/>`;}
-  const dp=DIMS.map((d,i)=>pt(i,d.score/100));
+  const dp=DIMS.map((d,i)=>pt(i,(_sn(d.score)||0)/100));
   s+=`<polygon points="${dp.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="rgba(91,140,255,.22)" stroke="#3B7CFF" stroke-width="2" stroke-linejoin="round"/>`;
   dp.forEach((p,i)=>{s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${lv(DIMS[i].level)}" stroke="#F3F6FB" stroke-width="1.5"/>`;});
   DIMS.forEach((d,i)=>{const[x,y]=pt(i,1.24);let a="middle";if(x>CX+6)a="start";else if(x<CX-6)a="end";
     s+=`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${a}" font-size="12" fill="#3D4A60">${d.name}</text>`;
-    s+=`<text x="${x.toFixed(1)}" y="${(y+18).toFixed(1)}" text-anchor="${a}" font-size="11" font-weight="700" fill="${lv(d.level)}">${d.score}</text>`;});
+    s+=`<text x="${x.toFixed(1)}" y="${(y+18).toFixed(1)}" text-anchor="${a}" font-size="11" font-weight="700" fill="${lv(d.level)}">${_sd(d)}</text>`;});
   s+=`</svg>`;el("radar").innerHTML=s;
 })();
 
 const dtag = v => v>0?`<span class="delta up">▲${v}</span>`:v<0?`<span class="delta down">▼${-v}</span>`:`<span class="delta flat">—</span>`;
 
 el("dimlist").innerHTML=DIMS.map(d=>{const c=lv(d.level);
-  return`<div class="dimrow"><span class="dname">${d.name}</span><span class="bar"><i style="width:${d.score}%;background:${c}"></i></span><span class="dnum mono"><b>${d.score}</b>${dtag(d.delta||0)}</span></div>`;}).join("");
+  return`<div class="dimrow"><span class="dname">${d.name}</span><span class="bar"><i style="width:${_sn(d.score)||0}%;background:${c}"></i></span><span class="dnum mono"><b>${_sd(d)}</b>${_sn(d.score)===null?"":dtag(d.delta||0)}</span></div>`;}).join("");
 
 el("cards").innerHTML=DIMS.map(d=>{const c=lv(d.level);
-  return`<div class="c"><div class="top"><span class="t">${d.name}</span><span class="pill" style="color:${c};background:${c}22">${d.score}${dtag(d.delta||0)}</span></div>
+  return`<div class="c"><div class="top"><span class="t">${d.name}</span><span class="pill" style="color:${c};background:${c}22">${_sd(d)}${_sn(d.score)===null?"":dtag(d.delta||0)}</span></div>
   <div class="mets">${d.metrics.map(m=>`<span class="met">${m[0]}<b>${m[1]}</b></span>`).join("")}</div>
   <div class="note">${d.note}</div></div>`;}).join("");
 
