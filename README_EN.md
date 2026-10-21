@@ -170,7 +170,7 @@ Copy it, paste it into another AI or another device, and keep going.
 |---|---|
 | `我的档案.md` | Six-dimension profile + scores + three-color status |
 | `问题总表.md` | Fix-it list sorted by priority; each "first step" is small enough to do today |
-| `仪表盘.html` ★ | Double-click to open — seven tabs that make you legible to yourself |
+| `仪表盘.html` ★ | Double-click to open — a personal workbench: sidebar nav, time-of-day greeting, seven tabs that make you legible to yourself |
 | `个人发展矩阵.md` | Current state / 3-month target / signals of success / this week's action |
 | `流水账-YYYY-MM.md` | All raw data, one file per month |
 | `日报-YYYY-MM-DD.md` | That day's raw stream |
