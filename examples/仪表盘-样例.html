@@ -135,6 +135,9 @@ h1{font-size:19px;font-weight:650;letter-spacing:.5px}
 .heat i{flex:1;height:22px;border-radius:6px;background:#E7ECF4}
 .heat .on{background:linear-gradient(135deg,var(--acc),var(--acc2))}
 .heatlab{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);margin-top:5px}
+/* 空数据占位：冷启动第一天大量出现，必须好看且说清下一步 */
+.empty{padding:22px 14px;text-align:center;font-size:12.5px;color:var(--dim);
+  background:#F7F9FC;border:1px dashed var(--line);border-radius:12px;line-height:1.7}
 
 /* 30 天记录热力图 */
 .h30{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:10px}
@@ -591,13 +594,27 @@ const lv = l => C[l] || C.grn;
 const fmt = n => n.toLocaleString("zh-CN");
 const el = id => document.getElementById(id);
 
+/* ---- 空数据保护（模板自带，勿改）★ 冷启动第一天的用户数据必然稀疏 ---- */
+const NA = "—";
+const _has = a => Array.isArray(a) && a.length > 0;
+const _last = a => _has(a) ? a[a.length-1] : undefined;
+const _first = a => _has(a) ? a[0] : undefined;
+const _avg  = a => _has(a) ? a.reduce((x,y)=>x+y,0)/a.length : undefined;
+const _max  = a => _has(a) ? Math.max.apply(null,a) : undefined;
+const _min  = a => _has(a) ? Math.min.apply(null,a) : undefined;
+/* 数值安全：非有限数一律回退为占位符，绝不显示 NaN / Infinity */
+const _n = (v, suffix, fallback) => (v===undefined||v===null||!isFinite(v))
+  ? (fallback!==undefined?fallback:NA) : (Math.round(v*10)/10) + (suffix||"");
+const _empty = t => `<div class="empty">${t||"暂无数据 · 记满 5 条自动出现"}</div>`;
+
 /* ---- 通用图表 ---- */
 function line(vals, o){
   o = o || {};
+  if(!_has(vals)) return _empty(o.empty);
   const w=o.w||660, h=o.h||130, pad=6;
   const mn=o.min!==undefined?o.min:Math.min.apply(null,vals)-0.5;
   const mx=o.max!==undefined?o.max:Math.max.apply(null,vals)+0.5;
-  const X=i=>pad+i*(w-2*pad)/(vals.length-1);
+  const X=i=>vals.length===1?(w/2):pad+i*(w-2*pad)/(vals.length-1);
   const Y=v=>h-pad-((v-mn)/(mx-mn||1))*(h-2*pad);
   const pts=vals.map((v,i)=>[X(i),Y(v)]);
   const d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
@@ -620,8 +637,9 @@ function line(vals, o){
 }
 function vbars(vals, o){
   o=o||{};
+  if(!_has(vals)) return _empty(o.empty);
   const w=o.w||660, h=o.h||130, n=vals.length, bw=(w-20)/n*0.62, gap=(w-20)/n;
-  const mx=Math.max.apply(null,vals)*1.15||1;
+  const mx=_max(vals)*1.15||1;
   let s=`<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">`;
   vals.forEach((v,i)=>{
     const bh=Math.max(2,(v/mx)*(h-24)), x=10+i*gap+(gap-bw)/2, y=h-14-bh;
@@ -633,7 +651,8 @@ function vbars(vals, o){
 }
 function hbars(items, o){
   o=o||{};
-  const mx=Math.max.apply(null,items.map(i=>i.v))||1;
+  if(!_has(items)) return _empty(o.empty);
+  const mx=_max(items.map(i=>i.v))||1;
   return items.map(i=>`<div class="cat" style="margin-bottom:6px">
     <span class="cn" style="width:${o.w||72}px">${i.n}</span>
     <span class="cb"><i style="width:${(i.v/mx*100).toFixed(1)}%;background:${i.c||'linear-gradient(90deg,#6C5BFF,#3B7CFF)'}"></i></span>
@@ -667,7 +686,7 @@ try{const s=localStorage.getItem("pde-tab"); if(s&&el(s))show(s);}catch(e){}
 
 el("mdays").textContent=META.days;
 el("mrecs").textContent=META.records;
-el("gname").textContent=META.name;
+el("gname").textContent=META.name||"你";
 el("avatar").textContent=(META.name||"我").slice(0,1);
 document.title="个人工作台 · "+META.date;
 (function(){const d=new Date(),h=d.getHours();
@@ -696,14 +715,14 @@ renderStrip(0);
 el("ring").innerHTML=`<svg viewBox="0 0 62 62" width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="#E7ECF4" stroke-width="6"/><circle cx="31" cy="31" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(cir*p).toFixed(1)} ${cir.toFixed(1)}" transform="rotate(-90 31 31)"/><text x="31" y="35" text-anchor="middle" font-size="15" font-weight="700" fill="${col}">${META.total}</text></svg>`;})();
 
 (function(){
-  const max=Math.max(CASH.income,CASH.expense),bal=CASH.balance;
+  const max=Math.max(CASH.income,CASH.expense)||1,bal=CASH.balance;
   el("cash").innerHTML=`<div class="row"><span class="t">收入 / 支出</span>
     <span class="bal mono" style="color:${bal>=0?C.grn:C.red}">结余 ${bal>=0?"+":""}${fmt(bal)}</span></div>
     <div class="bars">
       <div class="bl"><span class="bn">收入</span><span class="bt"><i style="width:${(CASH.income/max*100).toFixed(1)}%;background:${C.grn}"></i></span><span class="bv mono">${fmt(CASH.income)}</span></div>
       <div class="bl"><span class="bn">支出</span><span class="bt"><i style="width:${(CASH.expense/max*100).toFixed(1)}%;background:${C.red}"></i></span><span class="bv mono">${fmt(CASH.expense)}</span></div>
     </div>
-    <div class="cats">${CASH.cats.slice(0,5).map(c=>`<div class="cat"><span class="cn">${c.n}</span><span class="cb"><i style="width:${(c.v/CASH.cats[0].v*100).toFixed(1)}%"></i></span><span class="cv mono">${fmt(c.v)}</span></div>`).join("")}</div>
+    <div class="cats">${CASH.cats.slice(0,5).map(c=>`<div class="cat"><span class="cn">${c.n}</span><span class="cb"><i style="width:${(c.v/(_max(CASH.cats.map(x=>x.v))||1)*100).toFixed(1)}%"></i></span><span class="cv mono">${fmt(c.v)}</span></div>`).join("")}</div>
     <div class="tip">${CASH.tip}</div>
     <div class="tip" style="border:none;padding-top:2px"><span style="color:#7A8699">近 30 天哪天记了、哪天断了</span>
       <div id="h30wrap"></div></div>`;
@@ -779,11 +798,12 @@ function toggleTodo(k,i){
 }
 function renderTodos(){
   var d1=todoState("pde-todo"), d2=todoState("pde-fix");
-  el("todo").innerHTML=TODO.map(function(t,i){
+  el("todo").innerHTML=_has(TODO)?TODO.map(function(t,i){
     var on=d1.indexOf(i)>=0;
     return `<div class="ti ${t.due?"due":""}"><span class="ck${on?" on":""}" data-k="pde-todo" data-i="${i}"></span>
       <span class="tt"${on?' style="text-decoration:line-through;color:#9AA4B5"':''}>${t.t}</span>
-      <span class="tm">${on?"已完成":t.m}</span></div>`;}).join("");
+      <span class="tm">${on?"已完成":t.m}</span></div>`;}).join("")
+    : _empty("还没有待办 · 说一句「周日要交稿」就会出现在到期项里");
   el("sc-fix").innerHTML=SOCIAL.fix.map(function(t,i){
     var on=d2.indexOf(i)>=0;
     return `<div class="ti due"><span class="ck${on?" on":""}" data-k="pde-fix" data-i="${i}"></span>
@@ -796,45 +816,52 @@ function renderTodos(){
 renderTodos();
 
 /* ---- 身体 ---- */
-var _avgIn=Math.round(BODY.intake.reduce(function(a,b){return a+b;},0)/BODY.intake.length);
-var _sur=_avgIn-BODY.burn;
-var _wd=(BODY.weight[BODY.weight.length-1]-BODY.weight[0]);
+var _avgIn=_avg(BODY.intake);
+var _sur=(_avgIn!==undefined&&BODY.burn)?_avgIn-BODY.burn:undefined;
+var _wNow=_last(BODY.weight), _w0=_first(BODY.weight);
+var _wd=(_wNow!==undefined&&_w0!==undefined)?(_wNow-_w0):undefined;
 var _bedAvg=(function(){
+  if(!_has(BODY.bedTime)) return undefined;
   var ms=BODY.bedTime.map(function(t){var p=t.split(":");var h=+p[0],m=+p[1];if(h<6)h+=24;return h*60+m;});
   var a=Math.round(ms.reduce(function(x,y){return x+y;},0)/ms.length)%1440;
   return String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
 })();
 var _over=BODY.intake.filter(function(v){return v>BODY.burn;}).length;
 el("bs-strip").innerHTML=strip([
-  ["当前体重",BODY.weight[BODY.weight.length-1]+" kg","#1F2A3D","⚖️"],
-  ["距目标",((BODY.weight[BODY.weight.length-1]-BODY.target).toFixed(1))+" kg",C.yel,"🎯"],
-  ["日均盈余",(_sur>0?"+":_sur<0?"−":"")+Math.abs(_sur)+" kcal",_sur>0?C.red:C.grn,"🍚"],
-  ["日均步数",fmt(BODY.steps),C.yel,"🚶"]
+  ["当前体重",_n(_wNow," kg","—"),"#1F2A3D","⚖️"],
+  ["距目标",(_wNow!==undefined&&BODY.target)?(_wNow-BODY.target).toFixed(1)+" kg":"—",C.yel,"🎯"],
+  ["日均盈余",_sur===undefined?"—":(_sur>0?"+":_sur<0?"−":"")+Math.abs(Math.round(_sur))+" kcal",_sur>0?C.red:C.grn,"🍚"],
+  ["日均步数",BODY.steps?fmt(BODY.steps):"—",C.yel,"🚶"]
 ]);
-el("bs-weight").innerHTML=line(BODY.weight,{id:1,ref:BODY.target})+
-  `<div class="legend"><span><s style="background:#3B7CFF"></s>实测体重</span><span><s style="background:#55617A"></s>目标线 ${BODY.target}kg</span><span style="margin-left:auto">${BODY.weight.length} 周内变化 ${(_wd>0?"+":"−")+Math.abs(_wd).toFixed(1)}kg${Math.abs(_wd)<1?"（几乎没动）":""}</span></div>`;
-el("bs-sleep").innerHTML=vbars(BODY.sleep,{showVal:true,colors:v=>v>=7?C.grn:v>=6?C.yel:C.red})+
-  `<div class="legend"><span><s style="background:${C.grn}"></s>≥7h 达标</span><span><s style="background:${C.yel}"></s>6–7h</span><span><s style="background:${C.red}"></s>&lt;6h</span><span style="margin-left:auto">平均入睡时间 ${_bedAvg}</span></div>`;
-el("bs-intake").innerHTML=line(BODY.intake,{id:2,ref:BODY.burn,color:"#FF8A5C",max:3200,min:1800})+
-  `<div class="legend"><span><s style="background:#FF8A5C"></s>每日摄入</span><span><s style="background:#55617A"></s>消耗线 ${BODY.burn}</span><span style="margin-left:auto">${BODY.intake.length} 天里 ${_over} 天超标</span></div>`;
-el("bs-log").innerHTML=tbl(BODY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],`<b>${r[2]}</b>`]})),["日期","内容","估算"],[70,0,120]);
+el("bs-weight").innerHTML=line(BODY.weight,{id:1,ref:BODY.target,empty:"还没有体重记录 · 记满 7 天才会出现曲线"})+
+  (_has(BODY.weight)?`<div class="legend"><span><s style="background:#3B7CFF"></s>实测体重</span><span><s style="background:#55617A"></s>目标线 ${BODY.target}kg</span><span style="margin-left:auto">${BODY.weight.length} 周内变化 ${(_wd>0?"+":"−")+Math.abs(_wd).toFixed(1)}kg${Math.abs(_wd)<1?"（几乎没动）":""}</span></div>`:"");
+el("bs-sleep").innerHTML=vbars(BODY.sleep,{showVal:true,colors:v=>v>=7?C.grn:v>=6?C.yel:C.red,empty:"还没有睡眠记录"})+
+  (_has(BODY.sleep)?`<div class="legend"><span><s style="background:${C.grn}"></s>≥7h 达标</span><span><s style="background:${C.yel}"></s>6–7h</span><span><s style="background:${C.red}"></s>&lt;6h</span><span style="margin-left:auto">平均入睡时间 ${_bedAvg}</span></div>`:"");
+el("bs-intake").innerHTML=line(BODY.intake,{id:2,ref:BODY.burn,color:"#FF8A5C",max:3200,min:1800,empty:"还没有饮食记录 · 拍一张饭照就能开始"})+
+  (_has(BODY.intake)?`<div class="legend"><span><s style="background:#FF8A5C"></s>每日摄入</span><span><s style="background:#55617A"></s>消耗线 ${BODY.burn}</span><span style="margin-left:auto">${BODY.intake.length} 天里 ${_over} 天超标</span></div>`:"");
+el("bs-log").innerHTML=_has(BODY.log)
+  ? tbl(BODY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],`<b>${r[2]}</b>`]})),["日期","内容","估算"],[70,0,120])
+  : _empty("还没有记录 · 说一句「早餐吃了两个包子」就能开始");
 
 /* ---- 情绪 ---- */
-var _hi=Math.max.apply(null,MOOD.scores), _lo=Math.min.apply(null,MOOD.scores);
+var _hi=_max(MOOD.scores), _lo=_min(MOOD.scores);
 var _low3=MOOD.scores.filter(function(v){return v<=3;}).length;
 var _best=MOOD.recover.slice().sort(function(a,b){return b.v-a.v;}).slice(0,2).map(function(r){return r.n;}).join(" · ");
 el("md-strip").innerHTML=strip([
-  ["本月均值",MOOD.mean+" / 10",C.yel,"🌤️"],
-  ["最高 / 最低",_hi+" / "+_lo,C.grn,"📈"],
+  ["本月均值",(MOOD.mean?MOOD.mean+" / 10":"—"),C.yel,"🌤️"],
+  ["最高 / 最低",(_hi!==undefined&&_lo!==undefined)?(_hi+" / "+_lo):"—",C.grn,"📈"],
   ["低谷时段",(MOOD.low||(MOOD.events[0]&&MOOD.events[0][0])||"—"),C.red,"🌧️"],
   ["有效恢复",_best||"—",C.grn,"🌿"]
 ]);
 el("md-line").innerHTML=line(MOOD.scores,{id:3,ref:MOOD.mean,color:"#6C5BFF",min:2,max:8,
-    dot:MOOD.scores.map(v=>v<=3?C.red:v>=7?C.grn:"#6C5BFF")})+
-  `<div class="legend"><span><s style="background:#6C5BFF"></s>每日评分</span><span><s style="background:#55617A"></s>均值 ${MOOD.mean}</span><span><s style="background:${C.red}"></s>≤3 分</span><span style="margin-left:auto">${MOOD.scores.length} 天里有 ${_low3} 天跌到 3 分及以下</span></div>`;
-el("md-events").innerHTML=tbl(MOOD.events.map(r=>({c:[r[0],`<b style="color:${r[1].includes('下降')?C.yel:C.red}">${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["触发事件","评分","说明"],[180,90,0]);
-el("md-recover").innerHTML=hbars(MOOD.recover,{w:64,unit:""})+
-  `<div class="tip" style="border:none">现在的默认恢复方式是排序最末的那一个 —— 它不是没用，是<b>把第二天的状态也搭进去了</b>。</div>`;
+    dot:MOOD.scores.map(v=>v<=3?C.red:v>=7?C.grn:"#6C5BFF"),empty:"还没有情绪打分 · 说一句「今天 6 分」就能开始"})+
+  (_has(MOOD.scores)?`<div class="legend"><span><s style="background:#6C5BFF"></s>每日评分</span><span><s style="background:#55617A"></s>均值 ${MOOD.mean}</span><span><s style="background:${C.red}"></s>≤3 分</span><span style="margin-left:auto">${MOOD.scores.length} 天里有 ${_low3} 天跌到 3 分及以下</span></div>`:"");
+el("md-events").innerHTML=_has(MOOD.events)
+  ? tbl(MOOD.events.map(r=>({c:[r[0],`<b style="color:${r[1].includes('下降')?C.yel:C.red}">${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["触发事件","评分","说明"],[180,90,0])
+  : _empty("还没有触发事件记录 · 记满 5 天会自动归纳");
+el("md-recover").innerHTML=(_has(MOOD.recover)?hbars(MOOD.recover,{w:64,unit:""})+
+  `<div class="tip" style="border:none">现在的默认恢复方式是排序最末的那一个 —— 它不是没用，是<b>把第二天的状态也搭进去了</b>。</div>`
+  : _empty("还没有恢复方式记录 · 记几次「散步 30 分钟」就能看出哪个有用"));
 
 /* ---- 学习 ---- */
 var _zero=STUDY.weekly.filter(function(v){return !v;}).length;
@@ -844,9 +871,11 @@ el("st-strip").innerHTML=strip([
   ["完成项",STUDY.finished+" 项",C.red,"✅"],
   ["今日目标",STUDY.target+" 分钟",C.grn,"🎯"]
 ]);
-el("st-week").innerHTML=vbars(STUDY.weekly,{showVal:true,colors:v=>v>0?C.grn:"#D9E0EB"})+
-  `<div class="legend"><span style="margin-left:auto">${_zero===STUDY.weekly.length?"连续 "+_zero+" 周为 0 —— 这不是退步，是从没启动过":STUDY.weekly.length+" 周里 "+_zero+" 周为 0"}</span></div>`;
-el("st-items").innerHTML=tbl(STUDY.items.map(r=>({c:[r[0],`<b>${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["在学 / 想学","状态","卡在哪"],[0,110,0]);
+el("st-week").innerHTML=vbars(STUDY.weekly,{showVal:true,colors:v=>v>0?C.grn:"#D9E0EB",empty:"还没有学习记录"})+
+  (_has(STUDY.weekly)?`<div class="legend"><span style="margin-left:auto">${_zero===STUDY.weekly.length?"连续 "+_zero+" 周为 0 —— 这不是退步，是从没启动过":STUDY.weekly.length+" 周里 "+_zero+" 周为 0"}</span></div>`:"");
+el("st-items").innerHTML=_has(STUDY.items)
+  ? tbl(STUDY.items.map(r=>({c:[r[0],`<b>${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["在学 / 想学","状态","卡在哪"],[0,110,0])
+  : _empty("还没记录在学的东西 · 说一句「在学 Excel」就能开始");
 el("st-next").innerHTML=`<div class="tip" style="border:none;padding-top:0;font-size:13px;line-height:1.7">${STUDY.next}</div>`;
 
 /* ---- 工作 ---- */
@@ -857,26 +886,30 @@ el("wk-strip").innerHTML=strip([
   ["在办",WORK.tasks.length+" 件",C.yel,"📌"],
   ["逾期",_overdue+" 件",_overdue?C.red:C.grn,"⚠️"]
 ]);
-el("wk-time").innerHTML=hbars(WORK.hours.map((h,i)=>({n:h.n,v:h.v,c:["#3B7CFF","#6C5BFF","#FFB224","#FF5C5C"][i]})),{w:80,unit:"h"})+
-  `<div class="tip">${WORK.note}</div>`;
-el("wk-tasks").innerHTML=tbl(WORK.tasks.map(r=>({c:[r[0],r[1].includes("逾期")?`<b style="color:${C.red}">${r[1]}</b>`:r[1],
+el("wk-time").innerHTML=(_has(WORK.hours)?hbars(WORK.hours.map((h,i)=>({n:h.n,v:h.v,c:["#3B7CFF","#6C5BFF","#FFB224","#FF5C5C"][i]})),{w:80,unit:"h"}):_empty("还没记录时间去向"))+
+  `<div class="tip">${WORK.note||"暂无数据 · 记满 5 条自动出现"}</div>`;
+el("wk-tasks").innerHTML=_has(WORK.tasks)
+  ? tbl(WORK.tasks.map(r=>({c:[r[0],r[1].includes("逾期")?`<b style="color:${C.red}">${r[1]}</b>`:r[1],
     `<span class="pri" style="color:${r[2]==="高"?C.red:r[2]==="中"?C.yel:C.grn};background:${(r[2]==="高"?C.red:r[2]==="中"?C.yel:C.grn)}1F">${r[2]}</span>`,r[3]]})),
-  ["事项","状态","优先级","下一步"],[0,120,70,0]);
+  ["事项","状态","优先级","下一步"],[0,120,70,0])
+  : _empty("还没有在办事项 · 说一句「在办：作品集」就能开始");
 
 /* ---- 关系 ---- */
 var _cold=SOCIAL.people.filter(function(p){return p[3]==="red";}).length;
-var _maxGap=Math.max.apply(null,SOCIAL.people.map(function(p){return p[2];}));
+var _maxGap=_max(SOCIAL.people.map(function(p){return p[2];}));
 el("sc-strip").innerHTML=strip([
   ["本周互动",SOCIAL.weekContacts+" 次",C.grn,"💬"],
   ["稳定维系",SOCIAL.highMaintain+" 人",C.red,"🤝"],
   ["超 30 天未联系",_cold+" 人",_cold?C.red:C.grn,"⏰"],
-  ["最长失联",_maxGap+" 天",_cold?C.red:C.grn,"📵"]
+  ["最长失联",(_maxGap!==undefined?_maxGap+" 天":"—"),_cold?C.red:C.grn,"📵"]
 ]);
-el("sc-people").innerHTML=tbl(SOCIAL.people.map(r=>({c:[r[0],`<b style="color:${r[3]==="red"?C.red:C.grn}">${r[1]}</b>`],due:r[3]==="red"})),
-  ["联系人","上次联系"],[0,0]);
-el("sc-week").innerHTML=vbars(SOCIAL.weekTrend,{showVal:true,color:"#0E9F5D",h:110})+
-  `<div class="legend"><span style="margin-left:auto">${_cold?SOCIAL.people.filter(function(p){return p[3]==="red";}).map(function(p){return p[0];}).join("、")+" 超 30 天没联系 —— 想维系的人在流失":"目前没有人超过 30 天未联系"}</span></div>`;
-el("sc-fix").innerHTML=SOCIAL.fix.map(t=>`<div class="ti due"><span class="ck"></span><span class="tt">${t}</span></div>`).join("");
+el("sc-people").innerHTML=_has(SOCIAL.people)
+  ? tbl(SOCIAL.people.map(r=>({c:[r[0],`<b style="color:${r[3]==="red"?C.red:C.grn}">${r[1]}</b>`],due:r[3]==="red"})),
+    ["联系人","上次联系"],[0,0])
+  : _empty("还没有联系人记录 · 说一句「今天跟妈打电话」就能开始");
+el("sc-week").innerHTML=vbars(SOCIAL.weekTrend,{showVal:true,color:"#0E9F5D",h:110,empty:"还没有互动记录"})+
+  (_has(SOCIAL.weekTrend)?`<div class="legend"><span style="margin-left:auto">${_cold?SOCIAL.people.filter(function(p){return p[3]==="red";}).map(function(p){return p[0];}).join("、")+" 超 30 天没联系 —— 想维系的人在流失":"目前没有人超过 30 天未联系"}</span></div>`:"");
+el("sc-fix").innerHTML=_has(SOCIAL.fix)?SOCIAL.fix.map(t=>`<div class="ti due"><span class="ck"></span><span class="tt">${t}</span></div>`).join(""):_empty("暂无待修复的关系");
 
 /* ---- 财务 ---- */
 var _outs=MONEY.log.filter(function(r){return String(r[3]).indexOf("-")===0;});
@@ -886,19 +919,22 @@ var _tipTxt=_cs.length>1
   ? (_cs[0].v>=_cs[1].v*0.8
      ? `${_cs[0].n} ${fmt(_cs[0].v)} 元 —— <b>跟${_cs[1].n}（${fmt(_cs[1].v)}）几乎一样多</b>，但从来没被当成一笔大额支出看待。`
      : `${_cs[0].n} ${fmt(_cs[0].v)} 元，是第二大支出（${_cs[1].n} ${fmt(_cs[1].v)}）的 ${(_cs[0].v/_cs[1].v).toFixed(1)} 倍。`)
-  : `${_cs[0].n} ${fmt(_cs[0].v)} 元。`;
+  : (_cs.length===1 ? `${_cs[0].n} ${fmt(_cs[0].v)} 元。`
+     : "还没有分类支出记录 —— 记几笔之后，这里会告诉你钱到底花在哪。");
 el("mn-strip").innerHTML=strip([
   ["本月收入",fmt(CASH.income),C.grn,"💵"],
   ["本月支出",fmt(CASH.expense),C.yel,"🛒"],
   ["结余",(CASH.balance>=0?"+":"")+fmt(CASH.balance),CASH.balance>=0?C.grn:C.red,"💰"],
   ["最大单笔",_big?(_big[1]+" −"+fmt(Math.abs(+String(_big[3]).replace(/[^0-9.]/g,"")))):"暂无",C.yel,"🧧"]
 ]);
-el("mn-log").innerHTML=tbl(MONEY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],r[2],
-    `<b style="color:${r[3].startsWith("+")?C.grn:C.red}">${r[3]}</b>`]})),["日期","分类","说明","金额（元）"],[70,80,0,100]);
-el("mn-cats").innerHTML=hbars(CASH.cats.map((c,i)=>({n:c.n,v:c.v,c:["#3B7CFF","#6C5BFF","#FFB224","#FF8A5C","#0E9F5D","#FF5C5C","#55617A"][i]})),{w:80,unit:""})+
+el("mn-log").innerHTML=_has(MONEY.log)
+  ? tbl(MONEY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],r[2],
+    `<b style="color:${r[3].startsWith("+")?C.grn:C.red}">${r[3]}</b>`]})),["日期","分类","说明","金额（元）"],[70,80,0,100])
+  : _empty("还没有记账 · 说一句「花了 42」就能开始");
+el("mn-cats").innerHTML=hbars(CASH.cats.map((c,i)=>({n:c.n,v:c.v,c:["#3B7CFF","#6C5BFF","#FFB224","#FF8A5C","#0E9F5D","#FF5C5C","#55617A"][i]})),{w:80,unit:"",empty:"还没有分类支出记录"})+
   `<div class="tip">${_tipTxt}</div>`;
-el("mn-trend").innerHTML=vbars(MONEY.trend,{showVal:true,h:120,colors:(v,i)=>i===MONEY.trend.length-1?C.yel:"#55617A"})+
-  `<div class="legend"><span><s style="background:${C.yel}"></s>本月</span><span style="margin-left:auto">${MONEY.note}</span></div>`;
+el("mn-trend").innerHTML=vbars(MONEY.trend,{showVal:true,h:120,colors:(v,i)=>i===MONEY.trend.length-1?C.yel:"#55617A",empty:"还没有月度支出记录"})+
+  `<div class="legend"><span><s style="background:${C.yel}"></s>本月</span><span style="margin-left:auto">${MONEY.note||""}</span></div>`;
 
 /* 手机端：给每张表套一层可横向滚动的容器 */
 document.querySelectorAll(".panel table").forEach(t=>{
