@@ -9,7 +9,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>个人工作台 · 2026-10-13</title>
+<title>个人工作台</title>
 <style>
 :root{
   --bg:#E8EEF6; --card:#FFFFFF; --card2:#F1F5FA; --line:#E3EAF3;
@@ -490,7 +490,7 @@ const DIMS = [
 const FOCUS = {
   tag:"本周最要命的一件事",
   title:"你每天多吃了约 520 大卡，自己不知道",
-  source:"依据：《高性价比人生指南》第 2 节第 9 条 · 证据等级 A",
+  source:"依据：— ｜ 这是流水账算出来的数据事实，不需要外部源（查不到就留空，别编条目号）",
   desc:"把三天饭照丢给 AI 估算后：日均摄入 2630，久坐状态下消耗约 2110。差额 520 —— 差不多等于<b>一个月胖 2 公斤</b>。这不是懒，是没人给你算过这笔账。",
   act:"明天开始：<b>晚饭前拍一张照</b>，丢给 AI 估个大概，30 秒。"
 };
@@ -531,7 +531,7 @@ const BODY = {
 /* 情绪板块 */
 const MOOD = {
   scores:[5,6,5,4,6,5,7,5,4,3,6,5,5,6],
-  mean:5.1,
+  mean:5.1, low:"周日晚上",
   events:[
     ["周日晚上","3 分","想到周一，什么都不想做"],
     ["汇报截止前一天","4 分","拖延带来的持续自责"],
@@ -556,7 +556,7 @@ const STUDY = {
 /* 工作板块 */
 const WORK = {
   hours:[{n:"执行",v:14.0},{n:"会议",v:8.5},{n:"沟通",v:5.5},{n:"杂事/等待",v:4.0}],
-  avail:"2 h/天",
+  avail:"2 h/天", block:"<6 h/周",
   tasks:[["季度汇报","逾期 14 天","高","明天上午写第一页大纲"],
          ["对接新供应商","进行中","中","周四前发第一版需求"],
          ["整理交接文档","未开始","低","排在汇报之后"]],
@@ -669,6 +669,7 @@ el("mdays").textContent=META.days;
 el("mrecs").textContent=META.records;
 el("gname").textContent=META.name;
 el("avatar").textContent=(META.name||"我").slice(0,1);
+document.title="个人工作台 · "+META.date;
 (function(){const d=new Date(),h=d.getHours();
 el("greet").textContent=h<6?"夜深了":h<11?"上午好":h<14?"中午好":h<18?"下午好":"晚上好";
 el("bdate").textContent=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
@@ -795,52 +796,66 @@ function renderTodos(){
 renderTodos();
 
 /* ---- 身体 ---- */
+var _avgIn=Math.round(BODY.intake.reduce(function(a,b){return a+b;},0)/BODY.intake.length);
+var _sur=_avgIn-BODY.burn;
+var _wd=(BODY.weight[BODY.weight.length-1]-BODY.weight[0]);
+var _bedAvg=(function(){
+  var ms=BODY.bedTime.map(function(t){var p=t.split(":");var h=+p[0],m=+p[1];if(h<6)h+=24;return h*60+m;});
+  var a=Math.round(ms.reduce(function(x,y){return x+y;},0)/ms.length)%1440;
+  return String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
+})();
+var _over=BODY.intake.filter(function(v){return v>BODY.burn;}).length;
 el("bs-strip").innerHTML=strip([
   ["当前体重",BODY.weight[BODY.weight.length-1]+" kg","#1F2A3D","⚖️"],
   ["距目标",((BODY.weight[BODY.weight.length-1]-BODY.target).toFixed(1))+" kg",C.yel,"🎯"],
-  ["日均盈余","+520 kcal",C.red,"🍚"],
+  ["日均盈余",(_sur>0?"+":_sur<0?"−":"")+Math.abs(_sur)+" kcal",_sur>0?C.red:C.grn,"🍚"],
   ["日均步数",fmt(BODY.steps),C.yel,"🚶"]
 ]);
 el("bs-weight").innerHTML=line(BODY.weight,{id:1,ref:BODY.target})+
-  `<div class="legend"><span><s style="background:#3B7CFF"></s>实测体重</span><span><s style="background:#55617A"></s>目标线 74kg</span><span style="margin-left:auto">12 周内变化 −0.6kg（几乎没动）</span></div>`;
+  `<div class="legend"><span><s style="background:#3B7CFF"></s>实测体重</span><span><s style="background:#55617A"></s>目标线 ${BODY.target}kg</span><span style="margin-left:auto">${BODY.weight.length} 周内变化 ${(_wd>0?"+":"−")+Math.abs(_wd).toFixed(1)}kg${Math.abs(_wd)<1?"（几乎没动）":""}</span></div>`;
 el("bs-sleep").innerHTML=vbars(BODY.sleep,{showVal:true,colors:v=>v>=7?C.grn:v>=6?C.yel:C.red})+
-  `<div class="legend"><span><s style="background:${C.grn}"></s>≥7h 达标</span><span><s style="background:${C.yel}"></s>6–7h</span><span><s style="background:${C.red}"></s>&lt;6h</span><span style="margin-left:auto">平均入睡时间 01:1x</span></div>`;
+  `<div class="legend"><span><s style="background:${C.grn}"></s>≥7h 达标</span><span><s style="background:${C.yel}"></s>6–7h</span><span><s style="background:${C.red}"></s>&lt;6h</span><span style="margin-left:auto">平均入睡时间 ${_bedAvg}</span></div>`;
 el("bs-intake").innerHTML=line(BODY.intake,{id:2,ref:BODY.burn,color:"#FF8A5C",max:3200,min:1800})+
-  `<div class="legend"><span><s style="background:#FF8A5C"></s>每日摄入</span><span><s style="background:#55617A"></s>消耗线 2110</span><span style="margin-left:auto">7 天里 5 天超标</span></div>`;
+  `<div class="legend"><span><s style="background:#FF8A5C"></s>每日摄入</span><span><s style="background:#55617A"></s>消耗线 ${BODY.burn}</span><span style="margin-left:auto">${BODY.intake.length} 天里 ${_over} 天超标</span></div>`;
 el("bs-log").innerHTML=tbl(BODY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],`<b>${r[2]}</b>`]})),["日期","内容","估算"],[70,0,120]);
 
 /* ---- 情绪 ---- */
+var _hi=Math.max.apply(null,MOOD.scores), _lo=Math.min.apply(null,MOOD.scores);
+var _low3=MOOD.scores.filter(function(v){return v<=3;}).length;
+var _best=MOOD.recover.slice().sort(function(a,b){return b.v-a.v;}).slice(0,2).map(function(r){return r.n;}).join(" · ");
 el("md-strip").innerHTML=strip([
   ["本月均值",MOOD.mean+" / 10",C.yel,"🌤️"],
-  ["最高 / 最低","7 / 3",C.grn,"📈"],
-  ["低谷时段","周日晚上",C.red,"🌧️"],
-  ["有效恢复","散步 · 洗澡",C.grn,"🌿"]
+  ["最高 / 最低",_hi+" / "+_lo,C.grn,"📈"],
+  ["低谷时段",(MOOD.low||(MOOD.events[0]&&MOOD.events[0][0])||"—"),C.red,"🌧️"],
+  ["有效恢复",_best||"—",C.grn,"🌿"]
 ]);
 el("md-line").innerHTML=line(MOOD.scores,{id:3,ref:MOOD.mean,color:"#6C5BFF",min:2,max:8,
     dot:MOOD.scores.map(v=>v<=3?C.red:v>=7?C.grn:"#6C5BFF")})+
-  `<div class="legend"><span><s style="background:#6C5BFF"></s>每日评分</span><span><s style="background:#55617A"></s>均值 5.1</span><span><s style="background:${C.red}"></s>≤3 分</span><span style="margin-left:auto">近 14 天有 2 天跌到 3 分</span></div>`;
+  `<div class="legend"><span><s style="background:#6C5BFF"></s>每日评分</span><span><s style="background:#55617A"></s>均值 ${MOOD.mean}</span><span><s style="background:${C.red}"></s>≤3 分</span><span style="margin-left:auto">${MOOD.scores.length} 天里有 ${_low3} 天跌到 3 分及以下</span></div>`;
 el("md-events").innerHTML=tbl(MOOD.events.map(r=>({c:[r[0],`<b style="color:${r[1].includes('下降')?C.yel:C.red}">${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["触发事件","评分","说明"],[180,90,0]);
 el("md-recover").innerHTML=hbars(MOOD.recover,{w:64,unit:""})+
   `<div class="tip" style="border:none">现在的默认恢复方式是排序最末的那一个 —— 它不是没用，是<b>把第二天的状态也搭进去了</b>。</div>`;
 
 /* ---- 学习 ---- */
+var _zero=STUDY.weekly.filter(function(v){return !v;}).length;
 el("st-strip").innerHTML=strip([
-  ["连续投入","0 天",C.red,"⚡"],
+  ["连续投入",STUDY.streak+" 天",C.red,"⚡"],
   ["本月投入",STUDY.monthMin+" 分钟",C.red,"📚"],
   ["完成项",STUDY.finished+" 项",C.red,"✅"],
   ["今日目标",STUDY.target+" 分钟",C.grn,"🎯"]
 ]);
 el("st-week").innerHTML=vbars(STUDY.weekly,{showVal:true,colors:v=>v>0?C.grn:"#D9E0EB"})+
-  `<div class="legend"><span style="margin-left:auto">连续 8 周为 0 —— 这不是退步，是从没启动过</span></div>`;
+  `<div class="legend"><span style="margin-left:auto">${_zero===STUDY.weekly.length?"连续 "+_zero+" 周为 0 —— 这不是退步，是从没启动过":STUDY.weekly.length+" 周里 "+_zero+" 周为 0"}</span></div>`;
 el("st-items").innerHTML=tbl(STUDY.items.map(r=>({c:[r[0],`<b>${r[1]}</b>`,`<span style="color:var(--dim)">${r[2]}</span>`]})),["在学 / 想学","状态","卡在哪"],[0,110,0]);
 el("st-next").innerHTML=`<div class="tip" style="border:none;padding-top:0;font-size:13px;line-height:1.7">${STUDY.next}</div>`;
 
 /* ---- 工作 ---- */
+var _overdue=WORK.tasks.filter(function(t){return String(t[1]).indexOf("逾期")>=0;}).length;
 el("wk-strip").innerHTML=strip([
   ["可支配",WORK.avail,"#1F2A3D","⏱️"],
-  ["整块时间","<6 h/周",C.red,"🧩"],
-  ["在办","3 件",C.yel,"📌"],
-  ["逾期","1 件",C.red,"⚠️"]
+  ["整块时间",(WORK.block||"—"),C.red,"🧩"],
+  ["在办",WORK.tasks.length+" 件",C.yel,"📌"],
+  ["逾期",_overdue+" 件",_overdue?C.red:C.grn,"⚠️"]
 ]);
 el("wk-time").innerHTML=hbars(WORK.hours.map((h,i)=>({n:h.n,v:h.v,c:["#3B7CFF","#6C5BFF","#FFB224","#FF5C5C"][i]})),{w:80,unit:"h"})+
   `<div class="tip">${WORK.note}</div>`;
@@ -849,29 +864,39 @@ el("wk-tasks").innerHTML=tbl(WORK.tasks.map(r=>({c:[r[0],r[1].includes("逾期")
   ["事项","状态","优先级","下一步"],[0,120,70,0]);
 
 /* ---- 关系 ---- */
+var _cold=SOCIAL.people.filter(function(p){return p[3]==="red";}).length;
+var _maxGap=Math.max.apply(null,SOCIAL.people.map(function(p){return p[2];}));
 el("sc-strip").innerHTML=strip([
   ["本周互动",SOCIAL.weekContacts+" 次",C.grn,"💬"],
   ["稳定维系",SOCIAL.highMaintain+" 人",C.red,"🤝"],
-  ["超 30 天未联系","2 人",C.red,"⏰"],
-  ["最长失联","68 天",C.red,"📵"]
+  ["超 30 天未联系",_cold+" 人",_cold?C.red:C.grn,"⏰"],
+  ["最长失联",_maxGap+" 天",_cold?C.red:C.grn,"📵"]
 ]);
 el("sc-people").innerHTML=tbl(SOCIAL.people.map(r=>({c:[r[0],`<b style="color:${r[3]==="red"?C.red:C.grn}">${r[1]}</b>`],due:r[3]==="red"})),
   ["联系人","上次联系"],[0,0]);
 el("sc-week").innerHTML=vbars(SOCIAL.weekTrend,{showVal:true,color:"#0E9F5D",h:110})+
-  `<div class="legend"><span style="margin-left:auto">互动集中在室友和同事 —— 真正想维系的人反而在流失</span></div>`;
+  `<div class="legend"><span style="margin-left:auto">${_cold?SOCIAL.people.filter(function(p){return p[3]==="red";}).map(function(p){return p[0];}).join("、")+" 超 30 天没联系 —— 想维系的人在流失":"目前没有人超过 30 天未联系"}</span></div>`;
 el("sc-fix").innerHTML=SOCIAL.fix.map(t=>`<div class="ti due"><span class="ck"></span><span class="tt">${t}</span></div>`).join("");
 
 /* ---- 财务 ---- */
+var _outs=MONEY.log.filter(function(r){return String(r[3]).indexOf("-")===0;});
+var _big=_outs.length?_outs.slice().sort(function(a,b){return Math.abs(+String(a[3]).replace(/[^0-9.]/g,""))-Math.abs(+String(b[3]).replace(/[^0-9.]/g,""));}).slice(-1)[0]:null;
+var _cs=CASH.cats.slice().sort(function(a,b){return b.v-a.v;});
+var _tipTxt=_cs.length>1
+  ? (_cs[0].v>=_cs[1].v*0.8
+     ? `${_cs[0].n} ${fmt(_cs[0].v)} 元 —— <b>跟${_cs[1].n}（${fmt(_cs[1].v)}）几乎一样多</b>，但从来没被当成一笔大额支出看待。`
+     : `${_cs[0].n} ${fmt(_cs[0].v)} 元，是第二大支出（${_cs[1].n} ${fmt(_cs[1].v)}）的 ${(_cs[0].v/_cs[1].v).toFixed(1)} 倍。`)
+  : `${_cs[0].n} ${fmt(_cs[0].v)} 元。`;
 el("mn-strip").innerHTML=strip([
   ["本月收入",fmt(CASH.income),C.grn,"💵"],
   ["本月支出",fmt(CASH.expense),C.yel,"🛒"],
   ["结余",(CASH.balance>=0?"+":"")+fmt(CASH.balance),CASH.balance>=0?C.grn:C.red,"💰"],
-  ["最大单笔","人情 −800",C.yel,"🧧"]
+  ["最大单笔",_big?(_big[1]+" −"+fmt(Math.abs(+String(_big[3]).replace(/[^0-9.]/g,"")))):"暂无",C.yel,"🧧"]
 ]);
 el("mn-log").innerHTML=tbl(MONEY.log.map(r=>({c:[`<span style="color:var(--dim)">${r[0]}</span>`,r[1],r[2],
     `<b style="color:${r[3].startsWith("+")?C.grn:C.red}">${r[3]}</b>`]})),["日期","分类","说明","金额（元）"],[70,80,0,100]);
 el("mn-cats").innerHTML=hbars(CASH.cats.map((c,i)=>({n:c.n,v:c.v,c:["#3B7CFF","#6C5BFF","#FFB224","#FF8A5C","#0E9F5D","#FF5C5C","#55617A"][i]})),{w:80,unit:""})+
-  `<div class="tip">餐饮外卖 1,860 元 —— <b>跟房租房贷几乎一样多</b>，但从来没被当成一笔大额支出看待。</div>`;
+  `<div class="tip">${_tipTxt}</div>`;
 el("mn-trend").innerHTML=vbars(MONEY.trend,{showVal:true,h:120,colors:(v,i)=>i===MONEY.trend.length-1?C.yel:"#55617A"})+
   `<div class="legend"><span><s style="background:${C.yel}"></s>本月</span><span style="margin-left:auto">${MONEY.note}</span></div>`;
 
